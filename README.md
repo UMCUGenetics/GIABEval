@@ -1,2 +1,2 @@
 # GIABEval
-Genome-in-a-bottle evaluation tool to determine statistics
+Genome-in-a-bottle evaluation software to determine statistics
