@@ -1,0 +1,12 @@
+{
+    "name": "UMCUGenetics/GIABEval",
+    "homePage": "https://github.com/UMCUGenetics/GIABEval",
+    "repos": {
+      "https://github.com/nf-core/modules.git": {
+        "modules": {
+          "nf-core": {
+          }
+        }
+      }
+    }
+  }
