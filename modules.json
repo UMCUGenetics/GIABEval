@@ -1,12 +1,17 @@
 {
-    "name": "UMCUGenetics/GIABEval",
-    "homePage": "https://github.com/UMCUGenetics/GIABEval",
-    "repos": {
-      "https://github.com/nf-core/modules.git": {
-        "modules": {
-          "nf-core": {
+  "name": "UMCUGenetics/GIABEval",
+  "homePage": "https://github.com/UMCUGenetics/GIABEval",
+  "repos": {
+    "https://github.com/nf-core/modules.git": {
+      "modules": {
+        "nf-core": {
+          "happy/happy": {
+            "branch": "master",
+            "git_sha": "3f5420aa22e00bd030a2556dfdffc9e164ec0ec5",
+            "installed_by": ["modules"]
           }
         }
       }
     }
   }
+}
