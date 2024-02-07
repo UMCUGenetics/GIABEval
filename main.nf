@@ -5,8 +5,8 @@ include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main'
 
 workflow {
     // reference file channels
-    ch_fasta = Channel.fromPath("${params.ref_fasta}") | map {fasta -> [[id: fasta.name], fasta]}
-    ch_fasta_fai = Channel.fromPath("${params.ref_fai}") | map {fai -> [[id: fai.name], fai]}
+    ch_fasta = Channel.fromPath("${params.ref_fasta}").map{fasta -> [[id: fasta.name], fasta]}.first()
+    ch_fasta_fai = Channel.fromPath("${params.ref_fai}").map{fai -> [[id: fai.name], fai]}.first()
 
     // input vcf file channel
     ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
@@ -35,6 +35,6 @@ workflow {
             lst_used.add(mq.id + "_" + mt.id)
             return [meta, q, t, regions_bed, targets_bed]
     }
-    empty = Channel.of([["id" : "meta4"], []])
+    empty = Channel.of([["id" : "meta4"], []]).first()
     HAPPY_HAPPY(ch_comb, ch_fasta, ch_fasta_fai, empty, empty, empty)
 }
