@@ -9,7 +9,7 @@ workflow {
     ch_fasta_fai = Channel.fromPath("${params.ref_fai}") | map {fai -> [[id: fai.name], fai]}
 
     // input vcf file channel
-    ch_vcf_files = Channel.fromPath(["${params.input_vcf_path}/*.vcf", "${params.input_vcf_path}/*.vcf.gz"])
+    ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
     .map { vcf ->
         (sample, date, flowcell, runnr, barcode, projectname, projectnr) = vcf.name.tokenize("_")
         meta = [
