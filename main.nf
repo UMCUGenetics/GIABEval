@@ -1,7 +1,10 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
+include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
 include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
+
+def analysis_id = params.outdir.split('/')[-1]
 
 workflow {
     // reference file channels
@@ -37,4 +40,8 @@ workflow {
     }
     empty = Channel.of([["id" : "meta4"], []]).first()
     HAPPY_HAPPY(ch_comb, ch_fasta, ch_fasta_fai, empty, empty, empty)
+    CheckQC(
+        analysis_id,
+        HAPPY_HAPPY.out.summary_csv
+    )
 }
