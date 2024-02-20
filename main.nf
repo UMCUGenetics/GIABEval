@@ -7,9 +7,13 @@ include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main'
 def analysis_id = params.outdir.split('/')[-1]
 
 workflow {
+    def create_meta_with_id_name = {file -> [[id: file.name], file]}
     // reference file channels
-    ch_fasta = Channel.fromPath("${params.ref_fasta}").map{fasta -> [[id: fasta.name], fasta]}.first()
-    ch_fasta_fai = Channel.fromPath("${params.ref_fai}").map{fai -> [[id: fai.name], fai]}.first()
+    ch_fasta = Channel.fromPath("${params.ref_fasta}").map(create_meta_with_id_name).first()
+    ch_fasta_fai = Channel.fromPath("${params.ref_fai}").map(create_meta_with_id_name).first()
+
+    // GIAB reference file channels
+    ch_giab_truth = Channel.fromPath("${params["NIST_v2_19"].truth_vcf}").map(create_meta_with_id_name).first()
 
     // input vcf file channel
     ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
@@ -24,7 +28,7 @@ workflow {
 
     // get all combinations of unordered vcf pairs, without self-self and where a+b = b+a 
     def lst_used = []
-    ch_comb = ch_vcf_files.combine(ch_vcf_files)
+    ch_comb = ch_vcf_files.concat(ch_giab_truth).combine(ch_vcf_files)
     .branch {mq, q, mt, t ->
         regions_bed = "/hpc/diaggen/data/databases/GIAB/NIST_v3.3.2/HG001_GRCh37_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_nosomaticdel.bed"
         targets_bed = "/hpc/diaggen/software/production/Dx_tracks/Tracks/ENSEMBL_UCSC_merged_collapsed_sorted_v3_20bpflank.bed"
@@ -38,7 +42,7 @@ workflow {
             lst_used.add(mq.id + "_" + mt.id)
             return [meta, q, t, regions_bed, targets_bed]
     }
-    empty = Channel.of([["id" : "meta4"], []]).first()
+    empty = Channel.of([[id: "emptychannel"], []]).first()
     HAPPY_HAPPY(ch_comb, ch_fasta, ch_fasta_fai, empty, empty, empty)
     CheckQC(
         analysis_id,
