@@ -2,6 +2,7 @@
 nextflow.enable.dsl = 2
 
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
+include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
 include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
 
 def analysis_id = params.outdir.split('/')[-1]
@@ -44,6 +45,7 @@ workflow {
     }
     empty = Channel.of([[id: "emptychannel"], []]).first()
     HAPPY_HAPPY(ch_comb, ch_fasta, ch_fasta_fai, empty, empty, empty)
+    EditSummaryFileHappy(HAPPY_HAPPY.out.summary_csv)
     CheckQC(
         analysis_id,
         HAPPY_HAPPY.out.summary_csv
