@@ -4,6 +4,7 @@ nextflow.enable.dsl = 2
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
 include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
+include { MULTIQC } from './modules/nf-core/multiqc/main' 
 
 def analysis_id = params.outdir.split('/')[-1]
 
@@ -53,4 +54,5 @@ workflow {
             EditSummaryFileHappy.out.snp_all_summary_csv,
         ).collect()
     )
+    MULTIQC(analysis_id, HAPPY_HAPPY.out.summary_csv)
 }
