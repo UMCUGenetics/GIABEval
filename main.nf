@@ -48,6 +48,9 @@ workflow {
     EditSummaryFileHappy(HAPPY_HAPPY.out.summary_csv)
     CheckQC(
         analysis_id,
-        HAPPY_HAPPY.out.summary_csv
+        Channel.empty().mix(
+            EditSummaryFileHappy.out.indel_all_summary_csv,
+            EditSummaryFileHappy.out.snp_all_summary_csv,
+        ).collect()
     )
 }

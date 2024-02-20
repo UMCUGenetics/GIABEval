@@ -1,43 +1,49 @@
 metrics:
   - filename: "SNP.*truth.txt"
-    qc_col: "Sensitivity"
+    delim: ","
+    qc_col: "METRIC.Recall"
     threshold: 0.98
     operator: "<="
-    report_cols: ["sample_truth", "sample_query", "Sensitivity"]
-    sample_cols: ["sample_truth", "sample_query"]
+    report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
+    sample_cols: ["samples"]
     title: "PK_C_SNPs"
   - filename: "INDEL.*truth.txt"
-    qc_col: "Sensitivity"
+    delim: ","
+    qc_col: "METRIC.Recall"
     threshold: 0.90
     operator: "<="
-    report_cols: ["sample_truth", "sample_query", "Sensitivity"]
-    sample_cols: ["sample_truth", "sample_query"]
+    report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
+    sample_cols: ["samples"]
     title: "PK_C_INDELs"
   - filename: "SNP.*truth.txt"
-    qc_col: "Precision"
+    delim: ","
+    qc_col: "METRIC.Precision"
     threshold: 0.98
     operator: "<="
-    report_cols: ["sample_truth", "sample_query", "Precision"]
-    sample_cols: ["sample_truth", "sample_query"]
+    report_cols: ["sample_truth", "sample_query", "METRIC.Precision"]
+    sample_cols: ["samples"]
     title: "PK_D_SNPs"
   - filename: "INDEL.*truth.txt"
-    qc_col: "Precision"
+    delim: ","
+    qc_col: "METRIC.Precision"
     threshold: 0.85
     operator: "<="
-    report_cols: ["sample_truth", "sample_query", "Precision"]
-    sample_cols: ["sample_truth", "sample_query"]
+    report_cols: ["sample_truth", "sample_query", "METRIC.Precision"]
+    sample_cols: ["samples"]
     title: "PK_D_INDELs"
   - filename: "SNP.*_((?!truth).)*$"
-    qc_col: "Sensitivity"
+    delim: ","
+    qc_col: "METRIC.Recall"
     threshold: 0.98
     operator: "<="
-    report_cols: ["sample_truth", "sample_query", "Sensitivity"]
-    sample_cols: ["sample_truth", "sample_query"]
+    report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
+    sample_cols: ["samples"]
     title: "PK_E_SNPs"
   - filename: "INDEL.*_((?!truth).)*$"
-    qc_col: "Sensitivity"
+    delim: ","
+    qc_col: "METRIC.Recall"
     threshold: 0.90
     operator: "<="
-    report_cols: ["sample_truth", "sample_query", "Sensitivity"]
-    sample_cols: ["sample_truth", "sample_query"]
+    report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
+    sample_cols: ["samples"]
     title: "PK_E_INDELs"
