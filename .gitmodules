@@ -1,0 +1,3 @@
+[submodule "CustomModules"]
+	path = CustomModules
+	url = git@github.com:UMCUGenetics/CustomModules.git
