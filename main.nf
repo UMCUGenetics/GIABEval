@@ -32,8 +32,8 @@ workflow {
     def lst_used = []
     ch_comb = ch_vcf_files.concat(ch_giab_truth).combine(ch_vcf_files)
     .branch {mq, q, mt, t ->
-        regions_bed = "/hpc/diaggen/data/databases/GIAB/NIST_v3.3.2/HG001_GRCh37_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_nosomaticdel.bed"
-        targets_bed = "/hpc/diaggen/software/production/Dx_tracks/Tracks/ENSEMBL_UCSC_merged_collapsed_sorted_v3_20bpflank.bed"
+        regions_bed = "${params["NIST_v2_19"].high_conf_bed}"
+        targets_bed = "${params.exome_target_bed}"
         meta = [
             id: mq.id + "_" + mt.id,
             query: mq.id,
@@ -54,5 +54,6 @@ workflow {
             EditSummaryFileHappy.out.snp_all_csv,
         ).collect()
     )
-    MULTIQC(analysis_id, HAPPY_HAPPY.out.summary_csv)
+    multiqc_yaml = Channel.fromPath("${projectDir}/assets/multiqc_config.yaml")
+    MULTIQC(HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]}.collect(), multiqc_yaml, [], [])
 }
