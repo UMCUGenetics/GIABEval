@@ -35,14 +35,15 @@ workflow {
 
     // get all combinations of unordered vcf pairs, without self-self and where a+b = b+a 
     def lst_used = []
+    // create a channel with all vcf files and combine with input vcf files
     ch_comb = ch_vcf_files.concat(ch_giab_truth).combine(ch_vcf_files)
-    .branch {mq, q, mt, t ->
-        regions_bed = "${params["NIST_v2_19"].high_conf_bed}"
+    .branch {meta_truth, truth, meta_query, query ->
+        regions_bed = "${params[params.nist_version_to_use].high_conf_bed}"
         targets_bed = "${params.exome_target_bed}"
         meta = [
-            id: mq.id + "_" + mt.id,
-            query: mq.id,
-            truth: mt.id
+            id: meta_query.id + "_" + meta_truth.id,
+            query: meta_query.id,
+            truth: meta_truth.id
         ]
         // select valid combination: is without self-self and only unique sets (a+b == b+a)
         valid: (
