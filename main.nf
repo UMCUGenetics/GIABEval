@@ -20,7 +20,12 @@ workflow {
     ch_fasta_fai = Channel.fromPath("${params.ref_fai}").map(createMetaWithIdName).first()
 
     // GIAB reference file channels
-    ch_giab_truth = Channel.fromPath("${params["NIST_v2_19"].truth_vcf}").map(create_meta_with_id_name).first()
+    ch_giab_truth = Channel.fromPath("${params[params.nist_version_to_use].truth_vcf}")
+    .map{file -> 
+        tokens = file.name.tokenize("_")
+        [[id: tokens[0]], file]
+    }
+    .first()
 
     // input vcf file channel
     ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
