@@ -54,6 +54,12 @@ workflow {
             EditSummaryFileHappy.out.snp_all_csv,
         ).collect()
     )
-    multiqc_yaml = Channel.fromPath("${projectDir}/assets/multiqc_config.yaml")
-    MULTIQC(HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]}.collect(), multiqc_yaml, [], [])
+
+    multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
+    MULTIQC(
+        Channel.empty().mix(
+            HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]},
+            CheckQC.out.qc_output
+        ).collect(), 
+        multiqc_yaml, [], [])
 }
