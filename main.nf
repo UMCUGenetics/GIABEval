@@ -44,10 +44,14 @@ workflow {
             query: mq.id,
             truth: mt.id
         ]
-        // valid combination is without self-self and only unique sets (a+b = b+a)
-        valid: mq.id != mt.id && lst_used.indexOf(mq.id + "_" + mt.id) == -1 && lst_used.indexOf(mt.id + "_" + mq.id) == -1
-            lst_used.add(mq.id + "_" + mt.id)
-            return [meta, q, t, regions_bed, targets_bed]
+        // select valid combination: is without self-self and only unique sets (a+b == b+a)
+        valid: (
+                meta_query.id != meta_truth.id
+                && lst_used.indexOf(meta_query.id + "_" + meta_truth.id) == -1 
+                && lst_used.indexOf(meta_truth.id + "_" + meta_query.id) == -1
+            )
+            lst_used.add(meta_query.id + "_" + meta_truth.id)
+            return [meta, query, truth, regions_bed, targets_bed]
     }
 
     HAPPY_HAPPY(ch_comb, ch_fasta, ch_fasta_fai, empty, empty, empty)
