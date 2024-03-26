@@ -11,12 +11,13 @@ include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/
 def analysis_id = params.outdir.split('/')[-1]
 
 workflow {
+    def createMetaWithIdName = {file -> [[id: file.name], file]}
     // empty channel for optional inputs, where meta val is required (often input tuples)
     empty = Channel.of([[id: "null"], []]).first()
 
     // reference file channels
-    ch_fasta = Channel.fromPath("${params.ref_fasta}").map(create_meta_with_id_name).first()
-    ch_fasta_fai = Channel.fromPath("${params.ref_fai}").map(create_meta_with_id_name).first()
+    ch_fasta = Channel.fromPath("${params.ref_fasta}").map(createMetaWithIdName).first()
+    ch_fasta_fai = Channel.fromPath("${params.ref_fai}").map(createMetaWithIdName).first()
 
     // GIAB reference file channels
     ch_giab_truth = Channel.fromPath("${params["NIST_v2_19"].truth_vcf}").map(create_meta_with_id_name).first()
