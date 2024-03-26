@@ -1,17 +1,13 @@
 custom_data:
-  checkqc:
-    id: "checkqc"
-    section_name: "CheckQC"
+  umcu_checkqc:
+    id: "umcu_checkqc"
+    section_name: "UMCU CheckQC"
     plot_type: "table"
-    pconfig:
-      id: "checkqc"
-      namespace: "CheckQC"
 sp:
-  checkqc:
+  umcu_checkqc:
     fn: "*checkqc_summary.csv"
-
 table_cond_formatting_rules:
-  checkqc:
+  umcu_checkqc:
     pass:
       - s_eq: "PASS"
     fail:
