@@ -1,0 +1,18 @@
+custom_data:
+  checkqc:
+    id: "checkqc"
+    section_name: "CheckQC"
+    plot_type: "table"
+    pconfig:
+      id: "checkqc"
+      namespace: "CheckQC"
+sp:
+  checkqc:
+    fn: "*checkqc_summary.csv"
+
+table_cond_formatting_rules:
+  checkqc:
+    pass:
+      - s_eq: "PASS"
+    fail:
+      - s_eq: "FAIL"
