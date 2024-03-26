@@ -5,6 +5,8 @@ include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
 include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
 include { MULTIQC } from './modules/nf-core/multiqc/main' 
+include { VersionLog } from './CustomModules/Utils/VersionLog.nf'
+include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/workflow.nf'
 
 def analysis_id = params.outdir.split('/')[-1]
 
@@ -55,11 +57,17 @@ workflow {
         ).collect()
     )
 
+    // Create log files: Repository versions and Workflow params
+    VersionLog(Channel.of("${workflow.projectDir}/"))
+    Workflow_ExportParams()
+    
     multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
     MULTIQC(
         Channel.empty().mix(
+            HAPPY_HAPPY.out.versions,
             HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]},
-            CheckQC.out.qc_output
+            CheckQC.out.qc_output,
+            VersionLog.out.versions
         ).collect(), 
         multiqc_yaml, [], [])
 }
