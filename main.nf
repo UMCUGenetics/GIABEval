@@ -11,7 +11,9 @@ include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/
 def analysis_id = params.outdir.split('/')[-1]
 
 workflow {
-    def create_meta_with_id_name = {file -> [[id: file.name], file]}
+    // empty channel for optional inputs, where meta val is required (often input tuples)
+    empty = Channel.of([[id: "null"], []]).first()
+
     // reference file channels
     ch_fasta = Channel.fromPath("${params.ref_fasta}").map(create_meta_with_id_name).first()
     ch_fasta_fai = Channel.fromPath("${params.ref_fai}").map(create_meta_with_id_name).first()
@@ -46,7 +48,7 @@ workflow {
             lst_used.add(mq.id + "_" + mt.id)
             return [meta, q, t, regions_bed, targets_bed]
     }
-    empty = Channel.of([[id: "emptychannel"], []]).first()
+
     HAPPY_HAPPY(ch_comb, ch_fasta, ch_fasta_fai, empty, empty, empty)
     EditSummaryFileHappy(HAPPY_HAPPY.out.summary_csv)
     CheckQC(
