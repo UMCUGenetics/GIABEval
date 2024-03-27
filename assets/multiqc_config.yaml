@@ -3,6 +3,7 @@ custom_data:
     id: "umcu_checkqc"
     section_name: "UMCU CheckQC"
     plot_type: "table"
+    format: "{:,.4f}"
 sp:
   umcu_checkqc:
     fn: "*checkqc_summary.csv"
