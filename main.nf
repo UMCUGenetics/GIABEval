@@ -17,8 +17,8 @@ workflow {
 
     // reference file channels
     assembly_to_use = params[params.nist_version_to_use].assembly
-    ch_fasta = Channel.fromPath("${params[assembly_to_use].ref_fasta}").map(createMetaWithIdName).first()
-    ch_fasta_fai = Channel.fromPath("${params[assembly_to_use].ref_fai}").map(createMetaWithIdName).first()
+    ch_fasta = Channel.fromPath("${params.assembly[assembly_to_use].ref_fasta}").map(createMetaWithIdName).first()
+    ch_fasta_fai = Channel.fromPath("${params.assembly[assembly_to_use].ref_fai}").map(createMetaWithIdName).first()
 
     // GIAB reference file channels
     ch_giab_truth = Channel.fromPath("${params[params.nist_version_to_use].truth_vcf}")
