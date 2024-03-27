@@ -24,7 +24,7 @@ workflow {
     ch_giab_truth = Channel.fromPath("${params[params.nist_version_to_use].truth_vcf}")
     .map{file -> 
         tokens = file.name.tokenize("_")
-        [[id: tokens[0]], file]
+        [[id: tokens[0] + "_truth"], file]
     }
     .first()
 
