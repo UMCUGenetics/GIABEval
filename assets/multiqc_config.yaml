@@ -1,17 +1,32 @@
 custom_data:
+  export_params:
+    id: "export_params"
+    section_name: "Workflow Parameters"
+    plot_type: "table"
   umcu_checkqc:
     id: "umcu_checkqc"
     section_name: "UMCU CheckQC"
     plot_type: "table"
     format: "{:,.4f}"
+
 sp:
+  export_params:
+    fn: "workflow_params.txt"
   umcu_checkqc:
     fn: "*checkqc_summary.csv"
   software_versions:
     fn: "*versions.yml"
+
 table_cond_formatting_rules:
   umcu_checkqc:
     pass:
       - s_eq: "PASS"
     fail:
       - s_eq: "FAIL"
+
+show_hide_buttons:
+  - workflow_params
+show_hide_mode:
+  - show
+show_hide_patterns:
+  - "nist_version_to_use"

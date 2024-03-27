@@ -74,18 +74,15 @@ workflow {
     // Create log files: Repository versions and Workflow params
     VersionLog(Channel.of("${workflow.projectDir}/"))
     Workflow_ExportParams()
-    
-    // All important input params to add to multiQC:
-    ch_params_to_report = Channel.of(params.nist_version_to_use)
-    .collectFile(name:'parameters_to_report.txt', newLine: true, storeDir:"$params.outdir/log/")
-    
+        
     multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
     MULTIQC(
         Channel.empty().mix(
             HAPPY_HAPPY.out.versions,
             HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]},
             CheckQC.out.qc_output,
-            VersionLog.out.versions
+            VersionLog.out.versions,
+            Workflow_ExportParams.out
         ).collect(), 
         multiqc_yaml, [], [])
 }
