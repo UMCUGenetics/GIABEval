@@ -6,6 +6,8 @@ custom_data:
 sp:
   umcu_checkqc:
     fn: "*checkqc_summary.csv"
+  software_versions:
+    fn: "*versions.yml"
 table_cond_formatting_rules:
   umcu_checkqc:
     pass:
