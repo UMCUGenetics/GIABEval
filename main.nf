@@ -12,10 +12,10 @@ def analysis_id = params.outdir.split('/')[-1]
 
 workflow {
     def createMetaWithIdName = {file -> [[id: file.name], file]}
-    // empty channel for optional inputs, where meta val is required (often input tuples)
+    // Empty channel for optional inputs, where meta val is required (often input tuples)
     empty = Channel.of([[id: "null"], []]).first()
 
-    // reference file channels
+    // Reference file channels
     assembly_to_use = params[params.nist_version_to_use].assembly
     ch_fasta = Channel.fromPath("${params.assembly[assembly_to_use].ref_fasta}").map(createMetaWithIdName).first()
     ch_fasta_fai = Channel.fromPath("${params.assembly[assembly_to_use].ref_fai}").map(createMetaWithIdName).first()
@@ -28,7 +28,7 @@ workflow {
     }
     .first()
 
-    // input vcf file channel
+    // Input vcf file channel
     ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
     .map { vcf ->
         (sample, date, flowcell, runnr, barcode, projectname, projectnr) = vcf.name.tokenize("_")
@@ -39,9 +39,9 @@ workflow {
 	    [meta, vcf]
     }
 
-    // get all combinations of unordered vcf pairs, without self-self and where a+b = b+a 
+    // Get all combinations of unordered vcf pairs, without self-self and where a+b = b+a 
     def lst_used = []
-    // create a channel with all vcf files and combine with input vcf files
+    // Create a channel with all vcf files and combine with input vcf files
     ch_comb = ch_vcf_files.concat(ch_giab_truth).combine(ch_vcf_files)
     .branch {meta_truth, truth, meta_query, query ->
         regions_bed = "${params[params.nist_version_to_use].high_conf_bed}"
@@ -51,7 +51,7 @@ workflow {
             query: meta_query.id,
             truth: meta_truth.id
         ]
-        // select valid combination: is without self-self and only unique sets (a+b == b+a)
+        // Select valid combination: is without self-self and only unique sets (a+b == b+a)
         valid: (
                 meta_query.id != meta_truth.id
                 && lst_used.indexOf(meta_query.id + "_" + meta_truth.id) == -1 
