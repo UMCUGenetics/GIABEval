@@ -34,7 +34,6 @@ sbatch <<EOT
 --vcf_path $input \
 --outdir $output \
 --email $email \
--profile slurm \
 -resume -ansi-log false \
 ${optional_params[@]:-""}
 
