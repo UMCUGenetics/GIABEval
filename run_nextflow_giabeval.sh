@@ -9,7 +9,7 @@ output=`realpath $2`
 email=$3
 optional_params=( "${@:4}" )
 
-mkdir -p $output && cd $output
+mkdir -p ${output} && cd ${output}
 mkdir -p log
 
 if ! { [ -f 'workflow.running' ] || [ -f 'workflow.done' ] || [ -f 'workflow.failed' ]; }; then
@@ -55,16 +55,17 @@ sbatch <<EOT
 #SBATCH --job-name NF_GIABEval
 #SBATCH -o log/slurm_giabeval.%j.out
 #SBATCH -e log/slurm_giabeval.%j.err
-#SBATCH --mail-user $email
+#SBATCH --mail-user ${email}
 #SBATCH --mail-type FAIL
 #SBATCH --export=NONE
 #SBATCH --account=diaggen
 
-/hpc/diaggen/software/tools/nextflow run $workflow_path/main.nf \
--c $workflow_path/nextflow.config \
---vcf_path $input \
---outdir $output \
---email $email \
+export NXF_JAVA_HOME='${workflow_path}/tools/java/jdk'
+${workflow_path}/tools/nextflow/nextflow run ${workflow_path}/main.nf \
+-c ${workflow_path}/nextflow.config \
+--vcf_path ${input} \
+--outdir ${output} \
+--email ${email} \
 -resume -ansi-log false \
 ${optional_params[@]:-""}
 
@@ -85,7 +86,7 @@ if [ \$? -eq 0 ]; then
     touch workflow.done
 
     echo "Change permissions"
-    chmod 775 -R $output
+    chmod 775 -R ${output}
 
     exit 0
 else
@@ -94,11 +95,11 @@ else
     touch workflow.failed
 
     echo "Change permissions"
-    chmod 775 -R $output
+    chmod 775 -R ${output}
 
     exit 1
 fi
 EOT
 else
-echo "Workflow job not submitted, please check $output for 'workflow.status' files."
+echo "Workflow job not submitted, please check ${output} for 'workflow.status' files."
 fi
