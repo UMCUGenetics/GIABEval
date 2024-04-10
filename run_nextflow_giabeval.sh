@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-workflow_path='/hpc/diaggen/software/production/GIABEval'
+workflow_path='/hpc/diaggen/software/production/GIABEval/'
 
 # Set input and output dirs
 input=`realpath -e $1`
