@@ -37,7 +37,7 @@ workflow {
 	    [meta, vcf]
     }
 
-    // Get all combinations of unordered vcf pairs, without self-self and where a+b = b+a 
+    // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a 
     def lst_used = []
     // Create a channel with all vcf files and combine with input vcf files
     ch_comb = ch_vcf_files.concat(ch_giab_truth).combine(ch_vcf_files)
