@@ -7,12 +7,17 @@
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
 # GIABEval
-Genome-in-a-bottle evaluation software to determine statistics
+Genome-in-a-bottle evaluation software to determine statistics such as precision, recall and f-measure.
+
+## Get submodules, such as NextflowModules, CustomModules and install OpenJDK and Nextflow
+```bash
+sh install.sh
+```
 
 ## Usage
 
 ```bash
-nextflow run ...
+nextflow run main.nf -c nextflow.config --vcf_path [input_vcf_dir_path] --outdir [output_dir_path] --email [email]
 ```
 
 ## Citations
