@@ -1,6 +1,4 @@
 #!/usr/bin/env nextflow
-nextflow.enable.dsl = 2
-
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
 include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
