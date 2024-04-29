@@ -30,7 +30,7 @@ workflow {
     ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
     .map { vcf ->
         meta = [
-            id: vcf.simplename,
+            id: vcf.simpleName,
             single_end:false
         ]
 	    [meta, vcf]
