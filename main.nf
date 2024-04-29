@@ -29,9 +29,8 @@ workflow {
     // Input vcf file channel
     ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
     .map { vcf ->
-        (sample, date, flowcell, runnr, barcode, projectname, projectnr) = vcf.name.tokenize("_")
         meta = [
-            id: sample,
+            id: vcf.simplename,
             single_end:false
         ]
 	    [meta, vcf]
