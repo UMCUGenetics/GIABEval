@@ -52,7 +52,7 @@ sbatch <<EOT
 #SBATCH --nodes=1
 #SBATCH --mem 5G
 #SBATCH --gres=tmpspace:10G
-#SBATCH --job-name NF_GIABEval
+#SBATCH --job-name GIABEval
 #SBATCH -o log/slurm_giabeval.%j.out
 #SBATCH -e log/slurm_giabeval.%j.err
 #SBATCH --mail-user ${email}
