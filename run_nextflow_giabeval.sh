@@ -60,7 +60,7 @@ sbatch <<EOT
 #SBATCH --export=NONE
 #SBATCH --account=diaggen
 
-export NXF_JAVA_HOME='${workflow_path}/tools/java/jdk'
+export NXF_JAVA_HOME="${workflow_path}/tools/java/jdk"
 ${workflow_path}/tools/nextflow/nextflow run ${workflow_path}/main.nf \
 -c ${workflow_path}/nextflow.config \
 --vcf_path ${input} \
