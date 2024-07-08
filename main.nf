@@ -15,13 +15,14 @@ def analysis_id = params.outdir.split('/')[-1]
 workflow {
     def createMetaWithIdName = {file -> [[id: file.name], file]}
     def addTmpId = {meta, file -> [meta.id, meta, file]}
-    def createHappyInput = {meta_truth, truth, meta_query, query -> 
+    def createHappyInput = {meta_query, query, meta_truth, truth -> 
         meta = [
             id: meta_query.id + "_" + meta_truth.id,
             query: meta_query.id,
             truth: meta_truth.id
         ]
-        return [meta, query, truth, regions_bed, targets_bed]}
+        return [meta, query, truth, regions_bed, targets_bed]
+    }
 
     // Empty channel for optional inputs, where meta val is required (often input tuples)
     empty = Channel.of([[id: "null"], []]).first()
