@@ -46,11 +46,15 @@ workflow {
     // Input vcf file channel
     ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
     .map { vcf ->
+        tokens = vcf.name.tokenize(params.delim)
+        id_items = params.id_index.collect{idx -> tokens[idx]}
+        identifier = (id_items.join("_")? id_items.join("_") : id_items)
         meta = [
-            id: vcf.simpleName,
+            id: identifier,
+            vcf: vcf.simpleName,
             single_end:false
         ]
-	    [meta, vcf]
+        [meta, vcf]
     }
 
     // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a 
