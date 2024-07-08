@@ -47,6 +47,7 @@ workflow {
     // Input vcf file channel
     ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
     .map { vcf ->
+        // Split filename using params.delim and select indices to create unique identifier
         tokens = vcf.name.tokenize(params.delim)
         id_items = params.id_index.collect{idx -> tokens[idx]}
         identifier = (id_items.join("_")? id_items.join("_") : id_items)
