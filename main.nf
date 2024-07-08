@@ -12,6 +12,20 @@ include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/
 
 def analysis_id = params.outdir.split('/')[-1]
 
+// Add banner via log.info
+log.info """\
+    G I A B E V A L   P I P E L I N E
+    ===================================
+    input: ${params.vcf_path}
+    output: ${params.outdir}
+    nist version: ${params.nist_version_to_use}
+    assembly: ${params[params.nist_version_to_use].assembly}
+    GIAB settings: ${params[params.nist_version_to_use]}
+    ===================================
+    
+    """
+.stripIndent(true)
+
 workflow {
     def createMetaWithIdName = {file -> [[id: file.name], file]}
     def addTmpId = {meta, file -> [meta.id, meta, file]}
