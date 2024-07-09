@@ -7,7 +7,30 @@ custom_data:
     id: "umcu_checkqc"
     section_name: "UMCU CheckQC"
     plot_type: "table"
-    format: "{:,.4f}"
+    headers:
+      qc_summary:
+        description: "If all quality checks passed"
+      qc_status_pk_c_snps:
+        description: "Sensitivity SNPs passed or failed"
+      qc_value_pk_c_snps:
+        description: "Sensitivity (%) SNPs"
+        format: "{:,.4f}"
+      qc_status_pk_c_indels:
+        description: "Sensitivity INDELs passed or failed"
+      qc_value_pk_c_indels:
+        description: "Sensitivity (%) INDELs"
+        format: "{:,.4f}"
+      qc_status_pk_d_snps:
+        description: "Precision SNPs passed or failed"
+      qc_value_pk_d_snps:
+        description: "Precision (%) SNPs"
+        format: "{:,.4f}"
+      qc_status_pk_d_indels:
+        description: "Precision INDELs passed or failed"
+      qc_value_pk_d_indels:
+        description: "Precision (%) INDELs"
+        format: "{:,.4f}"
+
 
 sp:
   export_params:
