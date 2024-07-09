@@ -11,24 +11,24 @@ custom_data:
       qc_summary:
         description: "If all quality checks passed"
       qc_status_pk_c_snps:
-        description: "Sensitivity SNPs passed or failed"
+        description: "Sensitivity SNPs (PASS or FAIL)"
       qc_value_pk_c_snps:
-        description: "Sensitivity (%) SNPs"
+        description: "Sensitivity SNPs (fraction)"
         format: "{:,.4f}"
       qc_status_pk_c_indels:
-        description: "Sensitivity INDELs passed or failed"
+        description: "Sensitivity INDELs (PASS or FAIL)"
       qc_value_pk_c_indels:
-        description: "Sensitivity (%) INDELs"
+        description: "Sensitivity (fraction) INDELs"
         format: "{:,.4f}"
       qc_status_pk_d_snps:
-        description: "Precision SNPs passed or failed"
+        description: "Precision SNPs (PASS or FAIL)"
       qc_value_pk_d_snps:
-        description: "Precision (%) SNPs"
+        description: "Precision (fraction) SNPs"
         format: "{:,.4f}"
       qc_status_pk_d_indels:
-        description: "Precision INDELs passed or failed"
+        description: "Precision INDELs (PASS or FAIL)"
       qc_value_pk_d_indels:
-        description: "Precision (%) INDELs"
+        description: "Precision (fraction) INDELs"
         format: "{:,.4f}"
 
 
