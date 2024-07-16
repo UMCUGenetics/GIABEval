@@ -70,7 +70,7 @@ workflow {
 
     ch_vcf_files = Channel
     .fromFilePairs(
-        ["${params.vcf_path}/**.vcf{,.idx}", "${params.vcf_path}/**.vcf.gz{,.tbi}"], type:'file', checkIfExists:true
+        ["${params.vcf_path}/**.vcf{,.idx}", "${params.vcf_path}/**.vcf.gz{,.tbi}"], type:'file', maxDepth:0
     )
     .ifEmpty { error "No VCF files found in ${params.vcf_path}." }
     .map { key, vcf_idx ->
