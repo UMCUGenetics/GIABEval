@@ -5,6 +5,11 @@
     "https://github.com/nf-core/modules.git": {
       "modules": {
         "nf-core": {
+          "gatk4/leftalignandtrimvariants": {
+            "branch": "master",
+            "git_sha": "47cf4c9ff7d22eb5efff3cc70e270e264e3c6cea",
+            "installed_by": ["modules"]
+          },
           "gatk4/selectvariants": {
             "branch": "master",
             "git_sha": "d742e3143f2ccb8853c29b35cfcf50b5e5026980",
@@ -17,7 +22,7 @@
           },
           "multiqc": {
             "branch": "master",
-            "git_sha": "314d742bdb357a1df5f9b88427b3b6ac78aa33f7",
+            "git_sha": "b80f5fd12ff7c43938f424dd76392a2704fa2396",
             "installed_by": ["modules"]
           }
         }
