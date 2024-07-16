@@ -2,6 +2,8 @@
 // Include processes, alphabetic order of process alias
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
+include { GATK4_LEFTALIGNANDTRIMVARIANTS as GATK4_LEFTALIGNANDTRIMVARIANTS_INPUT} from './modules/nf-core/gatk4/leftalignandtrimvariants/main'
+include { GATK4_LEFTALIGNANDTRIMVARIANTS as GATK4_LEFTALIGNANDTRIMVARIANTS_GIAB} from './modules/nf-core/gatk4/leftalignandtrimvariants/main'
 include { GATK4_SELECTVARIANTS } from './modules/nf-core/gatk4/selectvariants/main'
 include { HAPPY_HAPPY as HAPPY_HAPPY_pairwise} from './modules/nf-core/happy/happy/main'
 include { HAPPY_HAPPY as HAPPY_HAPPY_tp_giab} from './modules/nf-core/happy/happy/main'
@@ -45,39 +47,76 @@ workflow {
     assembly_to_use = params[params.nist_version_to_use].assembly
     ch_fasta = Channel.fromPath("${params.assembly[assembly_to_use].ref_fasta}").map(createMetaWithIdName).first()
     ch_fasta_fai = Channel.fromPath("${params.assembly[assembly_to_use].ref_fai}").map(createMetaWithIdName).first()
-   
+    ch_dict = Channel.fromPath("${params.assembly[assembly_to_use].ref_dict}").map(createMetaWithIdName).first()
+
     // Reference bed files
     regions_bed = "${params[params.nist_version_to_use].high_conf_bed}"
     targets_bed = "${params.exome_target_bed}"
 
     // GIAB reference file channels
-    ch_giab_truth = Channel.fromPath("${params[params.nist_version_to_use].truth_vcf}")
-    .map{file -> 
-        tokens = file.name.tokenize("_")
-        [[id: tokens[0] + "_truth"], file]
-    }
+    ch_giab_truth = Channel
+    .fromPath([
+        "${params[params.nist_version_to_use].truth_vcf}",
+        "${params[params.nist_version_to_use].truth_vcf_index}"
+    ], type: 'file', checkIfExists: true)
+    .collate(2)
+    .map{vcf, idx->
+        tokens = vcf.name.tokenize("_")
+        [[id: tokens[0] + "_truth"], vcf, idx]
+   }
     .first()
 
     // Input vcf file channel
-    ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
-    .map { vcf ->
+
+    ch_vcf_files = Channel
+    .fromFilePairs(
+        ["${params.vcf_path}/**.vcf{,.idx}", "${params.vcf_path}/**.vcf.gz{,.tbi}"], type:'file', checkIfExists:true
+    )
+    .ifEmpty { error "No VCF files found in ${params.vcf_path}." }
+    .map { key, vcf_idx ->
         // Split filename using params.delim and select indices to create unique identifier
+        def vcf = vcf_idx[1]
+        def idx = vcf_idx[0]
         tokens = vcf.name.tokenize(params.delim)
-        id_items = params.id_index.collect{idx -> tokens[idx]}
+        id_items = params.id_index.collect{i -> tokens[i]}
         identifier = (id_items.join("_")? id_items.join("_") : id_items)
         meta = [
             id: identifier,
             vcf: vcf.simpleName,
             single_end:false
         ]
-        [meta, vcf]
+	    return [meta, vcf, idx]
     }
 
-    // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a 
+    /*
+        LEFTALIGNANDTRIMVARIANTS is required to
+        - place an indel at the left-most position (left-align)
+        - split multiallelic sites into biallelics
+    */
+    GATK4_LEFTALIGNANDTRIMVARIANTS_INPUT(
+        ch_vcf_files.map {meta, vcf, idx -> [meta, vcf, idx, []]},
+        ch_fasta.map {meta, fasta -> fasta},
+        ch_fasta_fai.map {meta, fai -> fai},
+        ch_dict.map {meta, dict -> dict}
+    )
+    GATK4_LEFTALIGNANDTRIMVARIANTS_GIAB(
+        ch_giab_truth.map {meta, vcf, idx -> [meta, vcf, idx, []]},
+        ch_fasta.map {meta, fasta -> fasta},
+        ch_fasta_fai.map {meta, fai -> fai},
+        ch_dict.map {meta, dict -> dict}
+    )
+
+    // Create a channel with vcfs against giab.
+    ch_vcf_giab = GATK4_LEFTALIGNANDTRIMVARIANTS_INPUT.out.vcf
+    .combine(GATK4_LEFTALIGNANDTRIMVARIANTS_GIAB.out.vcf)
+    .map(createHappyInput)
+
+    // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a
     def lst_used = []
 
     // Create a channel with all vcf files and combine with input vcf files
-    ch_vcf_pairwise = ch_vcf_files.combine(ch_vcf_files)
+    ch_vcf_pairwise = GATK4_LEFTALIGNANDTRIMVARIANTS_INPUT.out.vcf
+    .combine(GATK4_LEFTALIGNANDTRIMVARIANTS_INPUT.out.vcf)
     .branch {meta_truth, truth, meta_query, query ->
         meta = [
             id: meta_query.id + "_" + meta_truth.id,
@@ -94,12 +133,7 @@ workflow {
             return [meta, query, truth, regions_bed, targets_bed]
     }
 
-    // Create a channel with vcfs against giab.
-    ch_vcf_giab = ch_vcf_files.combine(ch_giab_truth)
-    .map(createHappyInput)
-
     HAPPY_HAPPY(ch_vcf_giab, ch_fasta, ch_fasta_fai, empty, empty, empty)
-
 
     // Retrieve true-positives from pairwise comparisons.
     HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, empty, empty, empty)
@@ -139,9 +173,13 @@ workflow {
     multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
     MULTIQC(
         Channel.empty().mix(
+            GATK4_LEFTALIGNANDTRIMVARIANTS_INPUT.out.versions,
+            GATK4_LEFTALIGNANDTRIMVARIANTS_GIAB.out.versions,
             GATK4_SELECTVARIANTS.out.versions,
             HAPPY_HAPPY.out.versions,
             HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]},
+            HAPPY_HAPPY_pairwise.out.versions,
+            HAPPY_HAPPY_pairwise.out.summary_csv.map{meta, csv -> [csv]},
             HAPPY_HAPPY_tp_giab.out.versions,
             HAPPY_HAPPY_tp_giab.out.summary_csv.map{meta, csv -> [csv]},
             CheckQC.out.qc_output,
