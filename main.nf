@@ -142,13 +142,16 @@ workflow {
         .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
     // SelectVariants on VCF + index to select true-positives
     GATK4_SELECTVARIANTS(
-        HAPPY_HAPPY_pairwise.out.vcf.map(addTmpId)
-        .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
-        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+        HAPPY_HAPPY_pairwise.out.vcf
+            .map(addTmpId)
+            .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
+            .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
     )
     // Run HAPPY on pairwise true-positives against GIAB truth
     HAPPY_HAPPY_tp_giab(
-        GATK4_SELECTVARIANTS.out.vcf.combine(ch_giab_truth).map(createHappyInput),
+        GATK4_SELECTVARIANTS.out.vcf
+            .combine(GATK4_LEFTALIGNANDTRIMVARIANTS_GIAB.out.vcf)
+            .map(createHappyInput),
         ch_fasta, ch_fasta_fai, empty, empty, empty
     )
 
