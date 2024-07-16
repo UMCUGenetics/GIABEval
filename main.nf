@@ -74,20 +74,19 @@ workflow {
     )
     .ifEmpty { error "No VCF files found in ${params.vcf_path}." }
     .map { key, vcf_idx ->
+        i_idx = vcf_idx[0].extension == "gz" || vcf_idx[0].extension == "vcf"? 1: 0
+        i_vcf = Math.abs(i_idx-1)
         // Split filename using params.delim and select indices to create unique identifier
-        def vcf = vcf_idx[1]
-        def idx = vcf_idx[0]
-        tokens = vcf.name.tokenize(params.delim)
+        tokens = vcf_idx[i_vcf].name.tokenize(params.delim)
         id_items = params.id_index.collect{i -> tokens[i]}
         identifier = (id_items.join("_")? id_items.join("_") : id_items)
         meta = [
             id: identifier,
-            vcf: vcf.simpleName,
+            vcf: vcf_idx[i_vcf].simpleName,
             single_end:false
         ]
-	    return [meta, vcf, idx]
+            return [meta, vcf_idx[i_vcf], vcf_idx[i_idx]]
     }
-
     /*
         LEFTALIGNANDTRIMVARIANTS is required to
         - place an indel at the left-most position (left-align)
