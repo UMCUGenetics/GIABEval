@@ -2,11 +2,11 @@
 // Include processes, alphabetic order of process alias
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
-include { GATK4_SELECTVARIANTS } from './modules/nf-core/gatk4/selectvariants/main' 
-include { HAPPY_HAPPY as HAPPY_HAPPY_pairwise} from './modules/nf-core/happy/happy/main' 
-include { HAPPY_HAPPY as HAPPY_HAPPY_tp_giab} from './modules/nf-core/happy/happy/main' 
-include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
-include { MULTIQC } from './modules/nf-core/multiqc/main' 
+include { GATK4_SELECTVARIANTS } from './modules/nf-core/gatk4/selectvariants/main'
+include { HAPPY_HAPPY as HAPPY_HAPPY_pairwise} from './modules/nf-core/happy/happy/main'
+include { HAPPY_HAPPY as HAPPY_HAPPY_tp_giab} from './modules/nf-core/happy/happy/main'
+include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main'
+include { MULTIQC } from './modules/nf-core/multiqc/main'
 include { VersionLog } from './CustomModules/Utils/VersionLog.nf'
 include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/workflow.nf'
 
@@ -22,14 +22,14 @@ log.info """\
     assembly: ${params[params.nist_version_to_use].assembly}
     GIAB settings: ${params[params.nist_version_to_use]}
     ===================================
-    
+
     """
 .stripIndent(true)
 
 workflow {
     def createMetaWithIdName = {file -> [[id: file.name], file]}
     def addTmpId = {meta, file -> [meta.id, meta, file]}
-    def createHappyInput = {meta_query, query, meta_truth, truth -> 
+    def createHappyInput = {meta_query, query, meta_truth, truth ->
         meta = [
             id: meta_query.id + "_" + meta_truth.id,
             query: meta_query.id,
@@ -87,7 +87,7 @@ workflow {
         // Select valid combination: is without self-self and only unique sets (a+b == b+a)
         valid: (
                 meta_query.id != meta_truth.id
-                && lst_used.indexOf(meta_query.id + "_" + meta_truth.id) == -1 
+                && lst_used.indexOf(meta_query.id + "_" + meta_truth.id) == -1
                 && lst_used.indexOf(meta_truth.id + "_" + meta_query.id) == -1
             )
             lst_used.add(meta_query.id + "_" + meta_truth.id)
@@ -105,7 +105,7 @@ workflow {
     HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, empty, empty, empty)
     ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf.map(addTmpId)
         .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
-        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]} 
+        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
     // SelectVariants on VCF + index to select true-positives
     GATK4_SELECTVARIANTS(
         HAPPY_HAPPY_pairwise.out.vcf.map(addTmpId)
@@ -114,7 +114,7 @@ workflow {
     )
     // Run HAPPY on pairwise true-positives against GIAB truth
     HAPPY_HAPPY_tp_giab(
-        GATK4_SELECTVARIANTS.out.vcf.combine(ch_giab_truth).map(createHappyInput), 
+        GATK4_SELECTVARIANTS.out.vcf.combine(ch_giab_truth).map(createHappyInput),
         ch_fasta, ch_fasta_fai, empty, empty, empty
     )
 
@@ -135,7 +135,7 @@ workflow {
     // Create log files: Repository versions and Workflow params
     VersionLog(Channel.of("${workflow.projectDir}/"))
     Workflow_ExportParams()
-        
+
     multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
     MULTIQC(
         Channel.empty().mix(
@@ -147,7 +147,7 @@ workflow {
             CheckQC.out.qc_output,
             VersionLog.out.versions,
             Workflow_ExportParams.out
-        ).collect(), 
+        ).collect(),
         multiqc_yaml, [], []
     )
 }
