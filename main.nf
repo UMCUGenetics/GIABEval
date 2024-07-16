@@ -189,6 +189,6 @@ workflow {
             VersionLog.out.versions,
             Workflow_ExportParams.out
         ).collect(),
-        multiqc_yaml, [], []
+        multiqc_yaml, [], [], [], []
     )
 }
