@@ -1,8 +1,10 @@
 #!/usr/bin/env nextflow
 // Include processes, alphabetic order of process alias
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
+include { BCFTOOLS_NORM } from './modules/nf-core/bcftools/norm/main'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
-include { GATK4_SELECTVARIANTS } from './modules/nf-core/gatk4/selectvariants/main' 
+include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_NOCALL } from './modules/nf-core/gatk4/selectvariants/main'
+include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_TP } from './modules/nf-core/gatk4/selectvariants/main'
 include { HAPPY_HAPPY as HAPPY_HAPPY_pairwise} from './modules/nf-core/happy/happy/main' 
 include { HAPPY_HAPPY as HAPPY_HAPPY_tp_giab} from './modules/nf-core/happy/happy/main' 
 include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
@@ -106,15 +108,24 @@ workflow {
     ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf.map(addTmpId)
         .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
         .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]} 
-    // SelectVariants on VCF + index to select true-positives
-    GATK4_SELECTVARIANTS(
+
+    // Remove nocall  on VCF + index
+    GATK4_SELECTVARIANTS_NOCALL(
         HAPPY_HAPPY_pairwise.out.vcf.map(addTmpId)
         .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
         .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
     )
+
+    // SelectVariants on VCF + index to select true-positives
+    GATK4_SELECTVARIANTS_TP(
+        GATK4_SELECTVARIANTS_NOCALL.out.vcf.map(addTmpId)
+        .join(GATK4_SELECTVARIANTS_NOCALL.out.tbi.map(addTmpId), by: 0)
+        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+    )
+
     // Run HAPPY on pairwise true-positives against GIAB truth
     HAPPY_HAPPY_tp_giab(
-        GATK4_SELECTVARIANTS.out.vcf.combine(ch_giab_truth).map(createHappyInput), 
+        GATK4_SELECTVARIANTS_TP.out.vcf.combine(ch_giab_truth).map(createHappyInput),
         ch_fasta, ch_fasta_fai, empty, empty, empty
     )
 
@@ -139,7 +150,7 @@ workflow {
     multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
     MULTIQC(
         Channel.empty().mix(
-            GATK4_SELECTVARIANTS.out.versions,
+            GATK4_SELECTVARIANTS_TP.out.versions,
             HAPPY_HAPPY.out.versions,
             HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]},
             HAPPY_HAPPY_tp_giab.out.versions,
