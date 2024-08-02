@@ -31,7 +31,7 @@ log.info """\
 workflow {
     def createMetaWithIdName = {file -> [[id: file.name], file]}
     def addTmpId = {meta, file -> [meta.id, meta, file]}
-    def createHappyInput = {meta_query, query, meta_truth, truth -> 
+    def createHappyInput = {meta_query, query, meta_truth, truth ->
         meta = [
             id: meta_query.id + "_" + meta_truth.id,
             query: meta_query.id,
@@ -54,7 +54,7 @@ workflow {
 
     // GIAB reference file channels
     ch_giab_truth = Channel.fromPath("${params[params.nist_version_to_use].truth_vcf}")
-    .map{file -> 
+    .map{file ->
         tokens = file.name.tokenize("_")
         [[id: tokens[0] + "_truth"], file]
     }
@@ -75,7 +75,7 @@ workflow {
         [meta, vcf]
     }
 
-    // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a 
+    // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a
     def lst_used = []
 
     // Create a channel with all vcf files and combine with input vcf files
@@ -89,7 +89,7 @@ workflow {
         // Select valid combination: is without self-self and only unique sets (a+b == b+a)
         valid: (
                 meta_query.id != meta_truth.id
-                && lst_used.indexOf(meta_query.id + "_" + meta_truth.id) == -1 
+                && lst_used.indexOf(meta_query.id + "_" + meta_truth.id) == -1
                 && lst_used.indexOf(meta_truth.id + "_" + meta_query.id) == -1
             )
             lst_used.add(meta_query.id + "_" + meta_truth.id)
@@ -107,7 +107,7 @@ workflow {
     HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, empty, empty, empty)
     ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf.map(addTmpId)
         .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
-        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]} 
+        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
 
     // Remove nocall  on VCF + index
     GATK4_SELECTVARIANTS_NOCALL(
