@@ -1,7 +1,8 @@
 #!/usr/bin/env nextflow
 // Include processes, alphabetic order of process alias
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
-include { BCFTOOLS_NORM } from './modules/nf-core/bcftools/norm/main'
+include { BCFTOOLS_NORM as BCFTOOLS_NORM_INPUT } from './modules/nf-core/bcftools/norm/main'
+include { BCFTOOLS_NORM as BCFTOOLS_NORM_GIAB } from './modules/nf-core/bcftools/norm/main'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_NOCALL } from './modules/nf-core/gatk4/selectvariants/main'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_TP } from './modules/nf-core/gatk4/selectvariants/main'
@@ -96,7 +97,25 @@ workflow {
             return [meta, query, truth, regions_bed, targets_bed]
     }
 
+    /*
+    BCFTOOLS_NORM (normalisation) is required to
+        - place an indel at the left-most position (left-align)
+        - normalizes split multiallelic sites into biallelics
+    */
+    BCFTOOLS_NORM_INPUT(
+        ch_vcf_files,
+        ch_fasta
+    )
+    BCFTOOLS_NORM_GIAB(
+        ch_giab_truth,
+        ch_fasta
+    )
+
     // Create a channel with vcfs against giab.
+    ch_vcf_giab = BCFTOOLS_NORM_INPUT.out.vcf
+    .combine(BCFTOOLS_NORM_GIAB.out.vcf)
+    .map(createHappyInput)
+
     ch_vcf_giab = ch_vcf_files.combine(ch_giab_truth)
     .map(createHappyInput)
 
@@ -150,6 +169,8 @@ workflow {
     multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
     MULTIQC(
         Channel.empty().mix(
+            BCFTOOLS_NORM_INPUT.out.versions,
+            BCFTOOLS_NORM_GIAB.out.versions,
             GATK4_SELECTVARIANTS_TP.out.versions,
             HAPPY_HAPPY.out.versions,
             HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]},
