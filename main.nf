@@ -1,8 +1,8 @@
 #!/usr/bin/env nextflow
 // Include processes, alphabetic order of process alias
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
-include { BCFTOOLS_INDEX as BCFTOOLS_INDEX_INPUT } from '../modules/nf-core/bcftools/index/main'
-include { BCFTOOLS_INDEX as BCFTOOLS_INDEX_GIAB } from '../modules/nf-core/bcftools/index/main'
+include { BCFTOOLS_INDEX as BCFTOOLS_INDEX_INPUT } from './modules/nf-core/bcftools/index/main'
+include { BCFTOOLS_INDEX as BCFTOOLS_INDEX_GIAB } from './modules/nf-core/bcftools/index/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_INPUT } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_GIAB } from './modules/nf-core/bcftools/norm/main'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
@@ -78,11 +78,31 @@ workflow {
         [meta, vcf]
     }
 
+    /*
+    BCFTOOLS_INDEX is required to index the VCF 
+    */
+    BCFTOOLS_INDEX_INPUT(ch_vcf_files)
+    BCFTOOLS_INDEX_GIAB(ch_giab_truth)
+
+    /*
+    BCFTOOLS_NORM (normalisation) is required to
+        - place an indel at the left-most position (left-align)
+        - normalizes split multiallelic sites into biallelics
+    */
+    BCFTOOLS_NORM_INPUT(ch_vcf_files.join(BCFTOOLS_INDEX_INPUT.out.tbi), ch_fasta)
+    BCFTOOLS_NORM_GIAB(ch_giab_truth.join(BCFTOOLS_INDEX_GIAB.out.tbi), ch_fasta)
+
+    // Create a channel with vcfs against giab.
+    ch_vcf_giab = BCFTOOLS_NORM_INPUT.out.vcf
+    .combine(BCFTOOLS_NORM_GIAB.out.vcf)
+    .map(createHappyInput)
+
     // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a
     def lst_used = []
 
     // Create a channel with all vcf files and combine with input vcf files
-    ch_vcf_pairwise = ch_vcf_files.combine(ch_vcf_files)
+    ch_vcf_pairwise = BCFTOOLS_NORM_INPUT.out.vcf
+    .combine(BCFTOOLS_NORM_INPUT.out.vcf)
     .branch {meta_truth, truth, meta_query, query ->
         meta = [
             id: meta_query.id + "_" + meta_truth.id,
@@ -99,36 +119,8 @@ workflow {
             return [meta, query, truth, regions_bed, targets_bed]
     }
 
-    /*
-    BCFTOOLS_INDEX is required to index the VCF 
-    */
-    BCFTOOLS_INDEX_INPUT(ch_vcf_files)
-    BCFTOOLS_NORM_GIAB(ch_giab_truth)
-
-    /*
-    BCFTOOLS_NORM (normalisation) is required to
-        - place an indel at the left-most position (left-align)
-        - normalizes split multiallelic sites into biallelics
-    */
-    BCFTOOLS_NORM_INPUT(
-        ch_vcf_files,
-        ch_fasta
-    )
-    BCFTOOLS_NORM_GIAB(
-        ch_giab_truth,
-        ch_fasta
-    )
-
-    // Create a channel with vcfs against giab.
-    ch_vcf_giab = BCFTOOLS_NORM_INPUT.out.vcf
-    .combine(BCFTOOLS_NORM_GIAB.out.vcf)
-    .map(createHappyInput)
-
-    ch_vcf_giab = ch_vcf_files.combine(ch_giab_truth)
-    .map(createHappyInput)
 
     HAPPY_HAPPY(ch_vcf_giab, ch_fasta, ch_fasta_fai, empty, empty, empty)
-
 
     // Retrieve true-positives from pairwise comparisons.
     HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, empty, empty, empty)
@@ -152,7 +144,7 @@ workflow {
 
     // Run HAPPY on pairwise true-positives against GIAB truth
     HAPPY_HAPPY_tp_giab(
-        GATK4_SELECTVARIANTS_TP.out.vcf.combine(ch_giab_truth).map(createHappyInput),
+        GATK4_SELECTVARIANTS_TP.out.vcf.combine(BCFTOOLS_NORM_GIAB.out.vcf).map(createHappyInput),
         ch_fasta, ch_fasta_fai, empty, empty, empty
     )
 
