@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 // Include processes, alphabetic order of process alias
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
+include { BCFTOOLS_INDEX as BCFTOOLS_INDEX_INPUT } from '../modules/nf-core/bcftools/index/main'
+include { BCFTOOLS_INDEX as BCFTOOLS_INDEX_GIAB } from '../modules/nf-core/bcftools/index/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_INPUT } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_GIAB } from './modules/nf-core/bcftools/norm/main'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
@@ -96,6 +98,12 @@ workflow {
             lst_used.add(meta_query.id + "_" + meta_truth.id)
             return [meta, query, truth, regions_bed, targets_bed]
     }
+
+    /*
+    BCFTOOLS_INDEX is required to index the VCF 
+    */
+    BCFTOOLS_INDEX_INPUT(ch_vcf_files)
+    BCFTOOLS_NORM_GIAB(ch_giab_truth)
 
     /*
     BCFTOOLS_NORM (normalisation) is required to
