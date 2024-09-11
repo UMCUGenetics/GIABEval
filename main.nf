@@ -12,6 +12,7 @@ include { HAPPY_HAPPY as HAPPY_HAPPY_pairwise} from './modules/nf-core/happy/hap
 include { HAPPY_HAPPY as HAPPY_HAPPY_tp_giab} from './modules/nf-core/happy/happy/main' 
 include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
 include { MULTIQC } from './modules/nf-core/multiqc/main' 
+include { TABIX_BGZIP } from './modules/nf-core/tabix/bgzip/main'
 include { VersionLog } from './CustomModules/Utils/VersionLog.nf'
 include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/workflow.nf'
 
