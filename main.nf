@@ -65,7 +65,22 @@ workflow {
     .first()
 
     // Input vcf file channel
-    ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf", "${params.vcf_path}/*.vcf.gz"])
+    // compressed VCF files
+    ch_vcf_files_compressed = Channel.fromPath(["${params.vcf_path}/*.vcf.gz"])
+    .map { vcf ->
+        // Split filename using params.delim and select indices to create unique identifier
+        tokens = vcf.name.tokenize(params.delim)
+        id_items = params.id_index.collect{idx -> tokens[idx]}
+        identifier = (id_items.join("_")? id_items.join("_") : id_items)
+        meta = [
+            id: identifier,
+            vcf: vcf.simpleName,
+            single_end:false
+        ]
+        [meta, vcf]
+    }
+    // uncompressed VCF files
+    ch_vcf_files_uncompressed = Channel.fromPath(["${params.vcf_path}/*.vcf"])
     .map { vcf ->
         // Split filename using params.delim and select indices to create unique identifier
         tokens = vcf.name.tokenize(params.delim)
@@ -79,10 +94,12 @@ workflow {
         [meta, vcf]
     }
 
-    /*
-    BCFTOOLS_INDEX is required to index the VCF 
-    */
-    BCFTOOLS_INDEX_INPUT(ch_vcf_files)
+    //Compress uncompressed VCF files
+    TABIX_BGZIP(ch_vcf_files_uncompressed)
+
+    // Index all VCF files 
+    ch_vcf_files_joined = ch_vcf_files_compressed.concat(TABIX_BGZIP.out.output)
+    BCFTOOLS_INDEX_INPUT(ch_vcf_files_joined)
     BCFTOOLS_INDEX_GIAB(ch_giab_truth)
 
     /*
@@ -90,7 +107,7 @@ workflow {
         - place an indel at the left-most position (left-align)
         - normalizes split multiallelic sites into biallelics
     */
-    BCFTOOLS_NORM_INPUT(ch_vcf_files.join(BCFTOOLS_INDEX_INPUT.out.tbi), ch_fasta)
+    BCFTOOLS_NORM_INPUT(ch_vcf_files_joined.join(BCFTOOLS_INDEX_INPUT.out.tbi), ch_fasta)
     BCFTOOLS_NORM_GIAB(ch_giab_truth.join(BCFTOOLS_INDEX_GIAB.out.tbi), ch_fasta)
 
     // Create a channel with vcfs against giab.
