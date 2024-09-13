@@ -1,10 +1,10 @@
 #!/usr/bin/env nextflow
 // Include processes, alphabetic order of process alias
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
-include { BCFTOOLS_INDEX as BCFTOOLS_INDEX_INPUT } from './modules/nf-core/bcftools/index/main'
-include { BCFTOOLS_INDEX as BCFTOOLS_INDEX_GIAB } from './modules/nf-core/bcftools/index/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_INPUT } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_GIAB } from './modules/nf-core/bcftools/norm/main'
+include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_INPUT } from '../modules/nf-core/bcftools/view/main'
+include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_GIAB} from '../modules/nf-core/bcftools/view/main'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_NOCALL } from './modules/nf-core/gatk4/selectvariants/main'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_TP } from './modules/nf-core/gatk4/selectvariants/main'
@@ -12,7 +12,6 @@ include { HAPPY_HAPPY as HAPPY_HAPPY_pairwise} from './modules/nf-core/happy/hap
 include { HAPPY_HAPPY as HAPPY_HAPPY_tp_giab} from './modules/nf-core/happy/happy/main' 
 include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
 include { MULTIQC } from './modules/nf-core/multiqc/main' 
-include { TABIX_BGZIP } from './modules/nf-core/tabix/bgzip/main'
 include { VersionLog } from './CustomModules/Utils/VersionLog.nf'
 include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/workflow.nf'
 
@@ -65,22 +64,7 @@ workflow {
     .first()
 
     // Input vcf file channel
-    // compressed VCF files
-    ch_vcf_files_compressed = Channel.fromPath(["${params.vcf_path}/*.vcf.gz"])
-    .map { vcf ->
-        // Split filename using params.delim and select indices to create unique identifier
-        tokens = vcf.name.tokenize(params.delim)
-        id_items = params.id_index.collect{idx -> tokens[idx]}
-        identifier = (id_items.join("_")? id_items.join("_") : id_items)
-        meta = [
-            id: identifier,
-            vcf: vcf.simpleName,
-            single_end:false
-        ]
-        [meta, vcf]
-    }
-    // uncompressed VCF files
-    ch_vcf_files_uncompressed = Channel.fromPath(["${params.vcf_path}/*.vcf"])
+    ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf.gz", "${params.vcf_path}/*.vcf"])
     .map { vcf ->
         // Split filename using params.delim and select indices to create unique identifier
         tokens = vcf.name.tokenize(params.delim)
@@ -95,12 +79,12 @@ workflow {
     }
 
     //Compress uncompressed VCF files
-    TABIX_BGZIP(ch_vcf_files_uncompressed)
-
+    //TABIX_BGZIP(ch_vcf_files_uncompressed)
     // Index all VCF files 
-    ch_vcf_files_joined = ch_vcf_files_compressed.concat(TABIX_BGZIP.out.output)
-    BCFTOOLS_INDEX_INPUT(ch_vcf_files_joined)
-    BCFTOOLS_INDEX_GIAB(ch_giab_truth)
+    //BCFTOOLS_INDEX_INPUT(ch_vcf_files_joined)
+    //BCFTOOLS_INDEX_GIAB(ch_giab_truth)
+    BCFTOOLS_VIEW_INPUT(ch_vcf_files)
+    BCFTOOLS_VIEW_GIAB(ch_giab_truth)
 
     /*
     BCFTOOLS_NORM (normalisation) is required to
