@@ -140,6 +140,14 @@ workflow {
         .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
     )
 
+    /*
+    BCFTOOLS FILTER to remove filter status from pairwise VCF.
+    Removing filter status results in similar results for A-B and B-A,
+    which could be performed randomly in this workflow due to non-lineair flow.
+    Moreover, overlapping variants between two VCFs could be regarded as high confident.
+    */
+
+
     // Run HAPPY on pairwise true-positives against GIAB truth
     HAPPY_HAPPY_tp_giab(
         GATK4_SELECTVARIANTS_TP.out.vcf.combine(BCFTOOLS_NORM_GIAB.out.vcf).map(createHappyInput),
