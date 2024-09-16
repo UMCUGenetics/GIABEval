@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 // Include processes, alphabetic order of process alias
 include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
+include { BCFTOOLS_FILTER } from './modules/nf-core/bcftools/filter/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_INPUT } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_GIAB } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_INPUT } from './modules/nf-core/bcftools/view/main'
