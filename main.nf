@@ -148,6 +148,8 @@ workflow {
     Moreover, overlapping variants between two VCFs could be regarded as high confident.
     */
 
+    BCFTOOLS_ANNOTATE(GATK4_SELECTVARIANTS_TP.out.vcf) 
+    BCFTOOLS_ANNOTATE.out
 
     // Run HAPPY on pairwise true-positives against GIAB truth
     HAPPY_HAPPY_tp_giab(
