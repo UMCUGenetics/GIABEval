@@ -147,15 +147,18 @@ workflow {
     which could be performed randomly in this workflow due to non-lineair flow.
     Moreover, overlapping variants between two VCFs could be regarded as high confident.
     */
-
-    BCFTOOLS_ANNOTATE(GATK4_SELECTVARIANTS_TP.out.vcf) 
-    BCFTOOLS_ANNOTATE.out
+    BCFTOOLS_ANNOTATE(
+        GATK4_SELECTVARIANTS_TP.out.vcf.map(addTmpId)
+        .join(GATK4_SELECTVARIANTS_TP.out.tbi.map(addTmpId), by: 0)
+        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, Channel.empty(), Channel.empty()]}
+        , Channel.empty()
+    )
 
     // Run HAPPY on pairwise true-positives against GIAB truth
     HAPPY_HAPPY_tp_giab(
-        GATK4_SELECTVARIANTS_TP.out.vcf.combine(BCFTOOLS_NORM_GIAB.out.vcf).map(createHappyInput),
+        BCFTOOLS_ANNOTATE.out.vcf.combine(BCFTOOLS_NORM_GIAB.out.vcf).map(createHappyInput),
         ch_fasta, ch_fasta_fai, empty, empty, empty
-    )
+    )   
 
     EditSummaryFileHappy(
         Channel.empty().mix(
@@ -163,6 +166,7 @@ workflow {
             HAPPY_HAPPY_tp_giab.out.summary_csv,
         )
     )
+
     CheckQC(
         analysis_id,
         Channel.empty().mix(
@@ -181,6 +185,7 @@ workflow {
             BCFTOOLS_NORM_INPUT.out.versions,
             BCFTOOLS_NORM_GIAB.out.versions,
             GATK4_SELECTVARIANTS_TP.out.versions,
+            BCFTOOLS_ANNOTATE.out.versions,
             HAPPY_HAPPY.out.versions,
             HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]},
             HAPPY_HAPPY_tp_giab.out.versions,
