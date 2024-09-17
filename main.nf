@@ -142,16 +142,17 @@ workflow {
     )
 
     /*
-    BCFTOOLS FILTER to remove filter status from pairwise VCF.
-    Removing filter status results in similar results for A-B and B-A,
-    which could be performed randomly in this workflow due to non-lineair flow.
-    Moreover, overlapping variants between two VCFs could be regarded as high confident.
+    BCFTOOLS FILTER to remove filter status from pairwise VCF as overlapping
+    variants between two VCFs could be regarded as high confident.
+      - removing filter status results in similar results for A-B and B-A,
+        which could be performed randomly in this workflow due to non-lineair flow.
     */
+
     BCFTOOLS_ANNOTATE(
         GATK4_SELECTVARIANTS_TP.out.vcf.map(addTmpId)
         .join(GATK4_SELECTVARIANTS_TP.out.tbi.map(addTmpId), by: 0)
-        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, Channel.empty(), Channel.empty()]}
-        , Channel.empty()
+        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, [], []]}
+        , Channel.empty().toList()
     )
 
     // Run HAPPY on pairwise true-positives against GIAB truth
