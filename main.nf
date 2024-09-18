@@ -9,9 +9,9 @@ include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_GIAB} from './modules/nf-core/bcftools/
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_NOCALL } from './modules/nf-core/gatk4/selectvariants/main'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_TP } from './modules/nf-core/gatk4/selectvariants/main'
+include { HAPPY_HAPPY as HAPPY_HAPPY_single } from './modules/nf-core/happy/happy/main'
 include { HAPPY_HAPPY as HAPPY_HAPPY_pairwise} from './modules/nf-core/happy/happy/main' 
 include { HAPPY_HAPPY as HAPPY_HAPPY_tp_giab} from './modules/nf-core/happy/happy/main' 
-include { HAPPY_HAPPY } from './modules/nf-core/happy/happy/main' 
 include { MULTIQC } from './modules/nf-core/multiqc/main' 
 include { VersionLog } from './CustomModules/Utils/VersionLog.nf'
 include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/workflow.nf'
@@ -118,8 +118,8 @@ workflow {
             return [meta, query, truth, regions_bed, targets_bed]
     }
 
-
-    HAPPY_HAPPY(ch_vcf_giab, ch_fasta, ch_fasta_fai, empty, empty, empty)
+    // Run HAPPY for all VCF compared to GIAB truth
+    HAPPY_HAPPY_single(ch_vcf_giab, ch_fasta, ch_fasta_fai, empty, empty, empty)
 
     // Retrieve true-positives from pairwise comparisons.
     HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, empty, empty, empty)
@@ -163,7 +163,7 @@ workflow {
 
     EditSummaryFileHappy(
         Channel.empty().mix(
-            HAPPY_HAPPY.out.summary_csv,
+            HAPPY_HAPPY_single.out.summary_csv,
             HAPPY_HAPPY_tp_giab.out.summary_csv,
         )
     )
@@ -187,8 +187,8 @@ workflow {
             BCFTOOLS_NORM_GIAB.out.versions,
             GATK4_SELECTVARIANTS_TP.out.versions,
             BCFTOOLS_ANNOTATE.out.versions,
-            HAPPY_HAPPY.out.versions,
-            HAPPY_HAPPY.out.summary_csv.map{meta, csv -> [csv]},
+            HAPPY_HAPPY_single.out.versions,
+            HAPPY_HAPPY_single.out.summary_csv.map{meta, csv -> [csv]},
             HAPPY_HAPPY_tp_giab.out.versions,
             HAPPY_HAPPY_tp_giab.out.summary_csv.map{meta, csv -> [csv]},
             CheckQC.out.qc_output,
