@@ -1,3 +1,18 @@
+
+module_order:
+  - happy:
+      name: "ALL variants"
+      info: "This section shows the Hap.py results for ALL variants"
+      anchor: "happy_all"
+      path_filters:
+        - "*ALL.summary.csv"
+  - happy:
+      name: "PASS variants"
+      info: "This section shows the Hap.py results for PASS-filtered variants"
+      anchor: "happy_pass"
+      path_filters:
+        - "*PASS.summary.csv"
+
 custom_data:
   export_params:
     id: "export_params"

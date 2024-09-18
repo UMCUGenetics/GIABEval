@@ -183,14 +183,10 @@ workflow {
     multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
     MULTIQC(
         Channel.empty().mix(
-            BCFTOOLS_NORM_INPUT.out.versions,
-            BCFTOOLS_NORM_GIAB.out.versions,
-            GATK4_SELECTVARIANTS_TP.out.versions,
-            BCFTOOLS_ANNOTATE.out.versions,
-            HAPPY_HAPPY_single.out.versions,
-            HAPPY_HAPPY_single.out.summary_csv.map{meta, csv -> [csv]},
-            HAPPY_HAPPY_tp_giab.out.versions,
-            HAPPY_HAPPY_tp_giab.out.summary_csv.map{meta, csv -> [csv]},
+            EditSummaryFileHappy.out.indel_all_csv,
+            EditSummaryFileHappy.out.snp_all_csv,
+            EditSummaryFileHappy.out.indel_pass_csv,
+            EditSummaryFileHappy.out.snp_pass_csv,
             CheckQC.out.qc_output,
             VersionLog.out.versions,
             Workflow_ExportParams.out
