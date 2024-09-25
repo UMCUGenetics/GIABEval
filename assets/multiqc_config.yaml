@@ -1,27 +1,11 @@
-
-module_order:
-  - happy:
-      name: "ALL variants"
-      info: "This section shows the Hap.py results for ALL variants"
-      anchor: "happy_all"
-      path_filters:
-        - "*ALL.summary.csv"
-  - happy:
-      name: "PASS variants"
-      info: "This section shows the Hap.py results for PASS-filtered variants"
-      anchor: "happy_pass"
-      path_filters:
-        - "*PASS.summary.csv"
-
 custom_data:
-  export_params:
-    id: "export_params"
-    section_name: "Workflow Parameters"
-    plot_type: "table"
   umcu_checkqc:
     id: "umcu_checkqc"
-    section_name: "UMCU CheckQC"
+    section_name: "CheckQC"
     plot_type: "table"
+    pconfig:
+      id: "umcu_checkqc"
+      namespace: "CheckQC"
     headers:
       qc_summary:
         description: "If all quality checks passed"
@@ -46,6 +30,131 @@ custom_data:
         description: "Precision (fraction) INDELs"
         format: "{:,.4f}"
 
+  happy_all_snp:
+    id: "happy_all_snp"
+    section_name: "Happy statistics SNP (ALL variants)"
+    plot_type: "table"
+    pconfig:
+      id: "happy_all_snp"
+      namespace: "Happy ALL variants SNPs"
+    headers:
+      Filter:
+         description: "Filter used"
+      Type:
+         description: "Variant Type"
+      METRIC.Recall:
+        description: "Sensitivity"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.Precision:
+        description: "Precision"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.F1_Score:
+        description: "F1 score"
+        format: "{:,.4f}"
+        scale: false
+      #TRUTH.TOTAL
+      #TRUTH.TP
+      #TRUTH.FN
+      #QUERY.TOTAL
+      #QUERY.FP
+
+  happy_all_indel:
+    id: "happy_all_indel"
+    section_name: "Happy statistics INDEL (ALL variants)"
+    plot_type: "table"
+    pconfig:
+      id: "happy_all_indel"
+      namespace: "Happy ALL variants INDELs"
+    headers:
+      Filter:
+         description: "Filter used"
+      Type:
+         description: "Variant Type"
+      METRIC.Recall:
+        description: "Sensitivity"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.Precision:
+        description: "Precision"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.F1_Score:
+        description: "F1 score"
+        format: "{:,.4f}"
+        scale: false
+      #TRUTH.TOTAL
+      #TRUTH.TP
+      #TRUTH.FN
+      #QUERY.TOTAL
+      #QUERY.FP
+
+
+  happy_pass_snp:
+    id: "happy_pass_snp"
+    section_name: "Happy statistics SNP (PASS filter variants)"
+    plot_type: "table"
+    pconfig:
+      id: "happy_pass_snp"
+      namespace: "Happy PASS filter SNPs"
+    headers:
+      Filter:
+         description: "Filter used"
+      Type:
+         description: "Variant Type"
+      METRIC.Recall:
+        description: "Sensitivity"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.Precision:
+        description: "Precision"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.F1_Score:
+        description: "F1 score"
+        format: "{:,.4f}"
+        scale: false
+      #TRUTH.TOTAL
+      #TRUTH.TP
+      #TRUTH.FN
+      #QUERY.TOTAL
+      #QUERY.FP
+
+  happy_pass_indel:
+    id: "happy_pass_indel"
+    section_name: "Happy statistics INDELs (PASS filter variants)"
+    plot_type: "table"
+    pconfig:
+      id: "happy_pass_indel"
+      namespace: "Happy PASS filter INDELs"
+    headers:
+      Filter:
+         description: "Filter used"
+      Type:
+         description: "Variant Type"
+      METRIC.Recall:
+        description: "Sensitivity"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.Precision:
+        description: "Precision"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.F1_Score:
+        description: "F1 score"
+        format: "{:,.4f}"
+        scale: false
+      #TRUTH.TOTAL
+      #TRUTH.TP
+      #TRUTH.FN
+      #QUERY.TOTAL
+      #QUERY.FP
+
+  export_params:
+    id: "export_params"
+    section_name: "Workflow Parameters"
+    plot_type: "table"
 
 sp:
   export_params:
@@ -54,6 +163,15 @@ sp:
     fn: "*checkqc_summary.csv"
   software_versions:
     fn: "*versions.yml"
+  happy_all_snp:
+    fn: "*SNP_ALL.summary.csv"
+  happy_all_indel:
+    fn: "*INDEL_ALL.summary.csv"
+  happy_pass_snp:
+    fn: "*SNP_PASS.summary.csv"
+  happy_pass_indel:
+    fn: "*INDEL_PASS.summary.csv"
+
 
 table_cond_formatting_rules:
   umcu_checkqc:
