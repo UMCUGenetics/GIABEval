@@ -54,11 +54,22 @@ custom_data:
         description: "F1 score"
         format: "{:,.4f}"
         scale: false
-      #TRUTH.TOTAL
-      #TRUTH.TP
-      #TRUTH.FN
-      #QUERY.TOTAL
-      #QUERY.FP
+      TRUTH.TOTAL:
+        description: "Total variants in Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.TP:
+        description: "Total true positive variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.FN:
+        description: "Total false negative variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      QUERY.FP:
+        description: "Total false positive variants in Query compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
 
   happy_all_indel:
     id: "happy_all_indel"
@@ -84,12 +95,22 @@ custom_data:
         description: "F1 score"
         format: "{:,.4f}"
         scale: false
-      #TRUTH.TOTAL
-      #TRUTH.TP
-      #TRUTH.FN
-      #QUERY.TOTAL
-      #QUERY.FP
-
+      TRUTH.TOTAL:
+        description: "Total variants in Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.TP:
+        description: "Total true positive variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.FN:
+        description: "Total false negative variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      QUERY.FP:
+        description: "Total false positive variants in Query compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
 
   happy_pass_snp:
     id: "happy_pass_snp"
@@ -115,11 +136,22 @@ custom_data:
         description: "F1 score"
         format: "{:,.4f}"
         scale: false
-      #TRUTH.TOTAL
-      #TRUTH.TP
-      #TRUTH.FN
-      #QUERY.TOTAL
-      #QUERY.FP
+      TRUTH.TOTAL:
+        description: "Total variants in Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.TP:
+        description: "Total true positive variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.FN:
+        description: "Total false negative variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      QUERY.FP:
+        description: "Total false positive variants in Query compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
 
   happy_pass_indel:
     id: "happy_pass_indel"
@@ -145,11 +177,22 @@ custom_data:
         description: "F1 score"
         format: "{:,.4f}"
         scale: false
-      #TRUTH.TOTAL
-      #TRUTH.TP
-      #TRUTH.FN
-      #QUERY.TOTAL
-      #QUERY.FP
+      TRUTH.TOTAL:
+        description: "Total variants in Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.TP:
+        description: "Total true positive variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.FN:
+        description: "Total false negative variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      QUERY.FP:
+        description: "Total false positive variants in Query compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
 
   export_params:
     id: "export_params"
