@@ -104,17 +104,17 @@ workflow {
     .combine(BCFTOOLS_NORM_INPUT.out.vcf)
     .branch {meta_truth, truth, meta_query, query ->
         meta = [
-            id: meta_query.id + "_" + meta_truth.id,
+            id: "pairwise_" + meta_query.id + "_" + meta_truth.id,
             query: meta_query.id,
             truth: meta_truth.id
         ]
         // Select valid combination: is without self-self and only unique sets (a+b == b+a)
         valid: (
                 meta_query.id != meta_truth.id
-                && lst_used.indexOf(meta_query.id + "_" + meta_truth.id) == -1
-                && lst_used.indexOf(meta_truth.id + "_" + meta_query.id) == -1
+                && lst_used.indexOf("pairwise_" + meta_query.id + "_" + meta_truth.id) == -1
+                && lst_used.indexOf("pairwise_" + meta_truth.id + "_" + meta_query.id) == -1
             )
-            lst_used.add(meta_query.id + "_" + meta_truth.id)
+            lst_used.add("pairwise_" + meta_query.id + "_" + meta_truth.id)
             return [meta, query, truth, regions_bed, targets_bed]
     }
 
