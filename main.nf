@@ -54,7 +54,7 @@ workflow {
    
     // Reference bed files
     regions_bed = "${params[params.nist_version_to_use].high_conf_bed}"
-    targets_bed = "${params.exome_target_bed}"
+    targets_bed = "${params.assembly[params[params.nist_version_to_use].assembly].exome_target_bed}"
 
     // GIAB reference file channels
     ch_giab_truth = Channel.fromPath("${params[params.nist_version_to_use].truth_vcf}")
