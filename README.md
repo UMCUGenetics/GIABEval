@@ -9,6 +9,9 @@
 # GIABEval
 Genome-in-a-bottle evaluation software to determine statistics such as precision, recall and f-measure.
 
+Note that statistics calculations will be on the primary contigs as defined in nextflow.config.
+This prevents issues due to diffent reference genomes such als ALT, Decoy, or tertairy software reference genomes.
+
 ## Get submodules, such as NextflowModules, CustomModules and install OpenJDK and Nextflow
 ```bash
 sh install.sh
