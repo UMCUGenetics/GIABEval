@@ -6,6 +6,7 @@ include { BCFTOOLS_NORM as BCFTOOLS_NORM_INPUT } from './modules/nf-core/bcftool
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_GIAB } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_INPUT } from './modules/nf-core/bcftools/view/main'
 include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_GIAB} from './modules/nf-core/bcftools/view/main'
+include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_PRIMARY} from './modules/nf-core/bcftools/view/main'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_NOCALL } from './modules/nf-core/gatk4/selectvariants/main'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_TP } from './modules/nf-core/gatk4/selectvariants/main'
@@ -25,7 +26,7 @@ log.info """\
     input: ${params.vcf_path}
     output: ${params.outdir}
     nist version: ${params.nist_version_to_use}
-    assembly: ${params[params.nist_version_to_use].assembly}
+    assembly: ${params.assembly[params[params.nist_version_to_use].assembly]}
     GIAB settings: ${params[params.nist_version_to_use]}
     ===================================
     
@@ -83,12 +84,18 @@ workflow {
     BCFTOOLS_VIEW_INPUT(ch_vcf_files.map { meta, vcf -> [ meta, vcf, [] ]}, Channel.empty().toList(), Channel.empty().toList(), Channel.empty().toList())
     BCFTOOLS_VIEW_GIAB(ch_giab_truth.map { meta, vcf -> [ meta, vcf, [] ]}, Channel.empty().toList(), Channel.empty().toList(), Channel.empty().toList())
 
+    // Slice Input VCFs for primary contigs
+    BCFTOOLS_VIEW_PRIMARY(BCFTOOLS_VIEW_INPUT.out.vcf
+        .join(BCFTOOLS_VIEW_INPUT.out.tbi)
+        .map { meta, vcf, tbi -> [ meta, vcf, tbi ]}, Channel.empty().toList(), Channel.empty().toList(), Channel.empty().toList()
+    )
+
     /*
     BCFTOOLS_NORM (normalisation) is required to
         - place an indel at the left-most position (left-align)
         - normalizes split multiallelic sites into biallelics
     */
-    BCFTOOLS_NORM_INPUT(ch_vcf_files.join(BCFTOOLS_VIEW_INPUT.out.tbi), ch_fasta)
+    BCFTOOLS_NORM_INPUT(BCFTOOLS_VIEW_PRIMARY.out.vcf.join(BCFTOOLS_VIEW_PRIMARY.out.tbi), ch_fasta)
     BCFTOOLS_NORM_GIAB(ch_giab_truth.join(BCFTOOLS_VIEW_GIAB.out.tbi), ch_fasta)
 
     // Create a channel with vcfs against giab.
