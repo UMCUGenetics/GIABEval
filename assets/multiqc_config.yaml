@@ -203,7 +203,7 @@ sp:
   export_params:
     fn: "workflow_params.txt"
   umcu_checkqc:
-    fn: "*checkqc_summary.csv"
+    fn: "*_summary.csv"
   software_versions:
     fn: "*versions.yml"
   happy_all_snp:
