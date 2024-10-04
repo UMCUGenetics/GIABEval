@@ -115,12 +115,12 @@ workflow {
             query: meta_query.id,
             truth: meta_truth.id
         ]
-        */
+        /*
         Select valid combination:
          - without self-self
          - only for sorted pair to ensure correct orientation based on sampleID
            irrespective of input order in channel(s)
-        /*
+        */
         valid: (
                 meta_query.id != meta_truth.id
                 && [meta_query.id, meta_truth.id] == [meta_query.id, meta_truth.id].sort()
