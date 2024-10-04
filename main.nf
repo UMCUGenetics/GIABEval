@@ -155,8 +155,7 @@ workflow {
     /*
     BCFTOOLS FILTER to remove filter status from pairwise VCF as overlapping
     variants between two VCFs could be regarded as high confident.
-      - removing filter status results in similar results for A-B and B-A,
-        which could be performed randomly in this workflow due to non-lineair flow.
+      - removing filter status results in similar results for A-B and B-A comparisons.
     */
 
     BCFTOOLS_ANNOTATE(
