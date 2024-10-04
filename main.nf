@@ -115,11 +115,15 @@ workflow {
             query: meta_query.id,
             truth: meta_truth.id
         ]
-        // Select valid combination: is without self-self and only unique sets (a+b == b+a)
+        */
+        Select valid combination:
+         - without self-self
+         - only for sorted pair to ensure correct orientation based on sampleID
+           irrespective of input order in channel(s)
+        /*
         valid: (
                 meta_query.id != meta_truth.id
-                && lst_used.indexOf("pairwise_" + meta_query.id + "_" + meta_truth.id) == -1
-                && lst_used.indexOf("pairwise_" + meta_truth.id + "_" + meta_query.id) == -1
+                && [meta_query.id, meta_truth.id] == [meta_query.id, meta_truth.id].sort()
             )
             lst_used.add("pairwise_" + meta_query.id + "_" + meta_truth.id)
             return [meta, query, truth, regions_bed, targets_bed]
