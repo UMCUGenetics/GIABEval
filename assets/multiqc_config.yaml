@@ -204,8 +204,6 @@ sp:
     fn: "workflow_params.txt"
   umcu_checkqc:
     fn: "*_summary.csv"
-  software_versions:
-    fn: "*versions.yml"
   happy_all_snp:
     fn: "*SNP_ALL.summary.csv"
   happy_all_indel:

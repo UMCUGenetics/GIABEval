@@ -198,7 +198,6 @@ workflow {
             EditSummaryFileHappy.out.indel_pass_csv,
             EditSummaryFileHappy.out.snp_pass_csv,
             CheckQC.out.qc_output,
-            VersionLog.out.versions,
             Workflow_ExportParams.out
         ).collect(), 
         multiqc_yaml, [], []
