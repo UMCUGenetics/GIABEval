@@ -122,11 +122,11 @@ workflow {
            irrespective of input order in channel(s)
         */
         valid: (
-                meta_query.id != meta_truth.id
-                && [meta_query.id, meta_truth.id] == [meta_query.id, meta_truth.id].sort()
-            )
-            lst_used.add("pairwise_" + meta_query.id + "_" + meta_truth.id)
-            return [meta, query, truth, regions_bed, targets_bed]
+            meta_query.id != meta_truth.id
+            && [meta_query.id, meta_truth.id] == [meta_query.id, meta_truth.id].sort()
+        )
+        lst_used.add("pairwise_" + meta_query.id + "_" + meta_truth.id)
+        return [meta, query, truth, regions_bed, targets_bed]
     }
 
     // Run HAPPY for all VCF compared to GIAB truth
@@ -134,22 +134,25 @@ workflow {
 
     // Retrieve true-positives from pairwise comparisons.
     HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, empty, empty, empty)
-    ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf.map(addTmpId)
+    ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf
+        .map(addTmpId)
         .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
         .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
 
     // Remove nocall  on VCF + index
     GATK4_SELECTVARIANTS_NOCALL(
-        HAPPY_HAPPY_pairwise.out.vcf.map(addTmpId)
-        .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
-        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+        HAPPY_HAPPY_pairwise.out.vcf
+            .map(addTmpId)
+            .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
+            .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
     )
 
     // SelectVariants on VCF + index to select true-positives
     GATK4_SELECTVARIANTS_TP(
-        GATK4_SELECTVARIANTS_NOCALL.out.vcf.map(addTmpId)
-        .join(GATK4_SELECTVARIANTS_NOCALL.out.tbi.map(addTmpId), by: 0)
-        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+        GATK4_SELECTVARIANTS_NOCALL.out.vcf
+            .map(addTmpId)
+            .join(GATK4_SELECTVARIANTS_NOCALL.out.tbi.map(addTmpId), by: 0)
+            .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
     )
 
     /*
@@ -159,9 +162,10 @@ workflow {
     */
 
     BCFTOOLS_ANNOTATE(
-        GATK4_SELECTVARIANTS_TP.out.vcf.map(addTmpId)
-        .join(GATK4_SELECTVARIANTS_TP.out.tbi.map(addTmpId), by: 0)
-        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, [], []]}
+        GATK4_SELECTVARIANTS_TP.out.vcf
+            .map(addTmpId)
+            .join(GATK4_SELECTVARIANTS_TP.out.tbi.map(addTmpId), by: 0)
+            .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, [], []]}
         , Channel.empty().toList()
     )
 
