@@ -1,12 +1,12 @@
 #!/usr/bin/env nextflow
 // Include processes, alphabetic order of process alias
-include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
 include { BCFTOOLS_ANNOTATE } from './modules/nf-core/bcftools/annotate/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_INPUT } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_GIAB } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_INPUT } from './modules/nf-core/bcftools/view/main'
 include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_GIAB} from './modules/nf-core/bcftools/view/main'
 include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_PRIMARY} from './modules/nf-core/bcftools/view/main'
+include { CheckQC } from './CustomModules/CheckQC/CheckQC.nf'
 include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHappy.nf'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_NOCALL } from './modules/nf-core/gatk4/selectvariants/main'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_TP } from './modules/nf-core/gatk4/selectvariants/main'
