@@ -1,0 +1,49 @@
+metrics:
+  - filename: ".*truth.*SNP"
+    delim: ","
+    qc_col: "METRIC.Recall"
+    threshold: 0.98
+    operator: "<="
+    report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
+    sample_cols: ["samples"]
+    title: "PK_C_SNPs"
+  - filename: ".*truth.*INDEL"
+    delim: ","
+    qc_col: "METRIC.Recall"
+    threshold: 0.90
+    operator: "<="
+    report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
+    sample_cols: ["samples"]
+    title: "PK_C_INDELs"
+  - filename: ".*truth.*SNP"
+    delim: ","
+    qc_col: "METRIC.Precision"
+    threshold: 0.98
+    operator: "<="
+    report_cols: ["sample_truth", "sample_query", "METRIC.Precision"]
+    sample_cols: ["samples"]
+    title: "PK_D_SNPs"
+  - filename: ".*truth.*INDEL"
+    delim: ","
+    qc_col: "METRIC.Precision"
+    threshold: 0.85
+    operator: "<="
+    report_cols: ["sample_truth", "sample_query", "METRIC.Precision"]
+    sample_cols: ["samples"]
+    title: "PK_D_INDELs"
+  - filename: "(?:(?!truth).)*SNP.*$"
+    delim: ","
+    qc_col: "METRIC.Recall"
+    threshold: 0.98
+    operator: "<="
+    report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
+    sample_cols: ["samples"]
+    title: "PK_E_SNPs"
+  - filename: "(?:(?!truth).)*INDEL.*$"
+    delim: ","
+    qc_col: "METRIC.Recall"
+    threshold: 0.90
+    operator: "<="
+    report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
+    sample_cols: ["samples"]
+    title: "PK_E_INDELs"
