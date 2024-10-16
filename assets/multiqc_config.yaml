@@ -1,0 +1,229 @@
+custom_data:
+  umcu_checkqc:
+    id: "umcu_checkqc"
+    section_name: "CheckQC"
+    plot_type: "table"
+    pconfig:
+      id: "umcu_checkqc"
+      namespace: "CheckQC"
+    headers:
+      qc_summary:
+        description: "If all quality checks passed"
+      qc_status_pk_c_snps:
+        description: "Sensitivity SNPs (PASS or FAIL)"
+      qc_value_pk_c_snps:
+        description: "Sensitivity SNPs (fraction)"
+        format: "{:,.4f}"
+      qc_status_pk_c_indels:
+        description: "Sensitivity INDELs (PASS or FAIL)"
+      qc_value_pk_c_indels:
+        description: "Sensitivity (fraction) INDELs"
+        format: "{:,.4f}"
+      qc_status_pk_d_snps:
+        description: "Precision SNPs (PASS or FAIL)"
+      qc_value_pk_d_snps:
+        description: "Precision (fraction) SNPs"
+        format: "{:,.4f}"
+      qc_status_pk_d_indels:
+        description: "Precision INDELs (PASS or FAIL)"
+      qc_value_pk_d_indels:
+        description: "Precision (fraction) INDELs"
+        format: "{:,.4f}"
+
+  happy_all_snp:
+    id: "happy_all_snp"
+    section_name: "Happy statistics SNP (ALL variants)"
+    plot_type: "table"
+    pconfig:
+      id: "happy_all_snp"
+      namespace: "Happy ALL variants SNPs"
+    headers:
+      Filter:
+         description: "Filter used"
+      Type:
+         description: "Variant Type"
+      METRIC.Recall:
+        description: "Sensitivity"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.Precision:
+        description: "Precision"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.F1_Score:
+        description: "F1 score"
+        format: "{:,.4f}"
+        scale: false
+      TRUTH.TOTAL:
+        description: "Total variants in Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.TP:
+        description: "Total true positive variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.FN:
+        description: "Total false negative variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      QUERY.FP:
+        description: "Total false positive variants in Query compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+
+  happy_all_indel:
+    id: "happy_all_indel"
+    section_name: "Happy statistics INDEL (ALL variants)"
+    plot_type: "table"
+    pconfig:
+      id: "happy_all_indel"
+      namespace: "Happy ALL variants INDELs"
+    headers:
+      Filter:
+         description: "Filter used"
+      Type:
+         description: "Variant Type"
+      METRIC.Recall:
+        description: "Sensitivity"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.Precision:
+        description: "Precision"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.F1_Score:
+        description: "F1 score"
+        format: "{:,.4f}"
+        scale: false
+      TRUTH.TOTAL:
+        description: "Total variants in Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.TP:
+        description: "Total true positive variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.FN:
+        description: "Total false negative variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      QUERY.FP:
+        description: "Total false positive variants in Query compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+
+  happy_pass_snp:
+    id: "happy_pass_snp"
+    section_name: "Happy statistics SNP (PASS filter variants)"
+    plot_type: "table"
+    pconfig:
+      id: "happy_pass_snp"
+      namespace: "Happy PASS filter SNPs"
+    headers:
+      Filter:
+         description: "Filter used"
+      Type:
+         description: "Variant Type"
+      METRIC.Recall:
+        description: "Sensitivity"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.Precision:
+        description: "Precision"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.F1_Score:
+        description: "F1 score"
+        format: "{:,.4f}"
+        scale: false
+      TRUTH.TOTAL:
+        description: "Total variants in Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.TP:
+        description: "Total true positive variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.FN:
+        description: "Total false negative variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      QUERY.FP:
+        description: "Total false positive variants in Query compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+
+  happy_pass_indel:
+    id: "happy_pass_indel"
+    section_name: "Happy statistics INDELs (PASS filter variants)"
+    plot_type: "table"
+    pconfig:
+      id: "happy_pass_indel"
+      namespace: "Happy PASS filter INDELs"
+    headers:
+      Filter:
+         description: "Filter used"
+      Type:
+         description: "Variant Type"
+      METRIC.Recall:
+        description: "Sensitivity"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.Precision:
+        description: "Precision"
+        format: "{:,.4f}"
+        scale: false
+      METRIC.F1_Score:
+        description: "F1 score"
+        format: "{:,.4f}"
+        scale: false
+      TRUTH.TOTAL:
+        description: "Total variants in Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.TP:
+        description: "Total true positive variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      TRUTH.FN:
+        description: "Total false negative variants compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+      QUERY.FP:
+        description: "Total false positive variants in Query compared to Truth set"
+        format: "{:,.0f}"
+        scale: false
+
+  export_params:
+    id: "export_params"
+    section_name: "Workflow Parameters"
+    plot_type: "table"
+
+sp:
+  export_params:
+    fn: "workflow_params.txt"
+  umcu_checkqc:
+    fn: "*_summary.csv"
+  happy_all_snp:
+    fn: "*SNP_ALL.summary.csv"
+  happy_all_indel:
+    fn: "*INDEL_ALL.summary.csv"
+  happy_pass_snp:
+    fn: "*SNP_PASS.summary.csv"
+  happy_pass_indel:
+    fn: "*INDEL_PASS.summary.csv"
+
+
+table_cond_formatting_rules:
+  umcu_checkqc:
+    pass:
+      - s_eq: "PASS"
+    fail:
+      - s_eq: "FAIL"
+
+show_hide_buttons:
+  - workflow_params
+show_hide_mode:
+  - show
+show_hide_patterns:
+  - "nist_version_to_use"

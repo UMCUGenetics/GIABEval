@@ -1,0 +1,12 @@
+Changes in module 'nf-core/bcftools/norm'
+--- modules/nf-core/bcftools/norm/tests/nextflow.vcf_gz.config
++++ modules/nf-core/bcftools/norm/tests/nextflow.vcf_gz.config
+@@ -1,4 +1,5 @@
+ process {
+-    ext.args = '-m -any --output-type z ---no-version'
++    ext.args = '-m -any --output-type z --no-version'
+     ext.prefix = "test_norm"
+ }
++
+
+************************************************************

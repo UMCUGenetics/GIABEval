@@ -1,0 +1,45 @@
+{
+  "name": "UMCUGenetics/GIABEval",
+  "homePage": "https://github.com/UMCUGenetics/GIABEval",
+  "repos": {
+    "https://github.com/nf-core/modules.git": {
+      "modules": {
+        "nf-core": {
+          "bcftools/annotate": {
+            "branch": "master",
+            "git_sha": "06c8865e36741e05ad32ef70ab3fac127486af48",
+            "installed_by": ["modules"],
+            "patch": "modules/nf-core/bcftools/annotate/bcftools-annotate.diff"
+          },
+          "bcftools/norm": {
+            "branch": "master",
+            "git_sha": "33ef773a7ea36e88323902f63662aa53c9b88988",
+            "installed_by": ["modules"],
+            "patch": "modules/nf-core/bcftools/norm/bcftools-norm.diff"
+          },
+          "bcftools/view": {
+            "branch": "master",
+            "git_sha": "06c8865e36741e05ad32ef70ab3fac127486af48",
+            "installed_by": ["modules"],
+            "patch": "modules/nf-core/bcftools/view/bcftools-view.diff"
+          },
+          "gatk4/selectvariants": {
+            "branch": "master",
+            "git_sha": "d742e3143f2ccb8853c29b35cfcf50b5e5026980",
+            "installed_by": ["modules"]
+          },
+          "happy/happy": {
+            "branch": "master",
+            "git_sha": "3f5420aa22e00bd030a2556dfdffc9e164ec0ec5",
+            "installed_by": ["modules"]
+          },
+          "multiqc": {
+            "branch": "master",
+            "git_sha": "314d742bdb357a1df5f9b88427b3b6ac78aa33f7",
+            "installed_by": ["modules"]
+          }
+        }
+      }
+    }
+  }
+}
