@@ -207,3 +207,29 @@ workflow {
         multiqc_yaml, [], []
     )
 }
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    COMPLETION EMAIL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+workflow.onComplete {
+    // HTML Template
+    def template = new File("$baseDir/assets/workflow_complete.html")
+    def binding = [
+        runName: analysis_id,
+        workflow: workflow
+    ]
+    def engine = new groovy.text.GStringTemplateEngine()
+    def email_html = engine.createTemplate(template).make(binding).toString()
+
+    // Send email
+    if (workflow.success) {
+        def subject = "GIABEval Workflow Successful: ${analysis_id}"
+        sendMail(to: params.email.trim(), subject: subject, body: email_html, attach: "${params.outdir}/QC/multiqc_report.html")
+    } else {
+        def subject = "GIABEval Workflow Failed: ${analysis_id}"
+        sendMail(to: params.email.trim(), subject: subject, body: email_html)
+    }
+}
