@@ -1,0 +1,20 @@
+Changes in module 'nf-core/bcftools/annotate'
+--- modules/nf-core/bcftools/annotate/tests/main.nf.test.snap
++++ modules/nf-core/bcftools/annotate/tests/main.nf.test.snap
+@@ -385,4 +385,5 @@
+         },
+         "timestamp": "2024-08-15T10:08:54.366358502"
+     }
+-}+}
++
+
+--- modules/nf-core/bcftools/annotate/tests/main.nf.test
++++ modules/nf-core/bcftools/annotate/tests/main.nf.test
+@@ -324,4 +324,5 @@
+ 
+     }
+ 
+-}+}
++
+
+************************************************************
