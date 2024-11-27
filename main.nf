@@ -3,7 +3,9 @@
 include { BCFTOOLS_ANNOTATE } from './modules/nf-core/bcftools/annotate/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_INPUT } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_GIAB } from './modules/nf-core/bcftools/norm/main'
-include { BCFTOOLS_REHEADER } from './modules/nf-core/bcftools/reheader/main'
+include { BCFTOOLS_REHEADER as BCFTOOLS_REHEADER_PAIRWISE_TP } from './modules/nf-core/bcftools/reheader/main'
+include { BCFTOOLS_REHEADER as BCFTOOLS_REHEADER_PAIRWISE } from './modules/nf-core/bcftools/reheader/main'
+include { BCFTOOLS_REHEADER as BCFTOOLS_REHEADER_SINGLE } from './modules/nf-core/bcftools/reheader/main'
 include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_INPUT } from './modules/nf-core/bcftools/view/main'
 include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_GIAB} from './modules/nf-core/bcftools/view/main'
 include { BCFTOOLS_VIEW as BCFTOOLS_VIEW_PRIMARY} from './modules/nf-core/bcftools/view/main'
@@ -133,6 +135,12 @@ workflow {
     // Run HAPPY for all VCF compared to GIAB truth
     HAPPY_HAPPY_single(ch_vcf_giab, ch_fasta, ch_fasta_fai, empty, empty, empty)
 
+    // Reheader Happy output VCF with reference genome .fai
+    BCFTOOLS_REHEADER_SINGLE(
+        HAPPY_HAPPY_single.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
+        ch_fasta_fai
+    )
+
     // Retrieve true-positives from pairwise comparisons.
     HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, empty, empty, empty)
     ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf
@@ -140,11 +148,17 @@ workflow {
         .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
         .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
 
+    // Reheader VCF with reference genome .fai
+    BCFTOOLS_REHEADER_PAIRWISE_TP(
+        HAPPY_HAPPY_pairwise.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
+        ch_fasta_fai
+    )
+
     // Remove nocall  on VCF + index
     GATK4_SELECTVARIANTS_NOCALL(
-        HAPPY_HAPPY_pairwise.out.vcf
+        BCFTOOLS_REHEADER_PAIRWISE_TP.out.vcf
             .map(addTmpId)
-            .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
+            .join(BCFTOOLS_REHEADER_PAIRWISE_TP.out.index.map(addTmpId), by: 0)
             .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
     )
 
@@ -175,6 +189,12 @@ workflow {
         BCFTOOLS_ANNOTATE.out.vcf.combine(BCFTOOLS_NORM_GIAB.out.vcf).map(createHappyInput),
         ch_fasta, ch_fasta_fai, empty, empty, empty
     )   
+
+    // Reheader Happy pairwise VCF with reference genome .fai
+    BCFTOOLS_REHEADER_PAIRWISE(
+        HAPPY_HAPPY_tp_giab.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
+        ch_fasta_fai
+    )
 
     EditSummaryFileHappy(
         Channel.empty().mix(
