@@ -31,7 +31,7 @@ metrics:
     report_cols: ["sample_truth", "sample_query", "METRIC.Precision"]
     sample_cols: ["samples"]
     title: "PK_D_INDELs"
-  - filename: "^(?=.*truth_pairwise)(?=.*SNP).*$"
+  - filename: "(?=.*truth_pairwise)(?=.*SNP).*$"
     delim: ","
     qc_col: "METRIC.Recall"
     threshold: 0.98
@@ -39,7 +39,7 @@ metrics:
     report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
     sample_cols: ["samples"]
     title: "PK_E_SNPs"
-  - filename: "^(?=.*truth_pairwise)(?=.*INDEL).*$"
+  - filename: "(?=.*truth_pairwise)(?=.*INDEL).*$"
     delim: ","
     qc_col: "METRIC.Recall"
     threshold: 0.90
