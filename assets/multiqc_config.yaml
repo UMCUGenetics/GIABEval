@@ -29,6 +29,16 @@ custom_data:
       qc_value_pk_d_indels:
         description: "Precision (fraction) INDELs"
         format: "{:,.4f}"
+      qc_status_pk_e_snps:
+        description: "Sensitivity pairwise SNP comparison (PASS or FAIL)"
+      qc_value_pk_e_snps:
+        description: "Sensitivity (fraction) SNPs"
+        format: "{:,.4f}"
+      qc_status_pk_e_indels:
+        description: "Sensitivity pairwise INDEL comparison (PASS or FAIL)"
+      qc_value_pk_e_indels:
+        description: "Sensitivity (fraction) INDELs"
+        format: "{:,.4f}"
 
   happy_all_snp:
     id: "happy_all_snp"
