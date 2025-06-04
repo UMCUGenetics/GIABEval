@@ -45,7 +45,7 @@ workflow {
             query: meta_query.id,
             truth: meta_truth.id
         ]
-        return [meta, query, truth, regions_bed, targets_bed]
+        return [meta, query, truth, regions_bed, false_positives]
     }
 
     // Empty channel for optional inputs, where meta val is required (often input tuples)
@@ -57,8 +57,8 @@ workflow {
     ch_fasta_fai = Channel.fromPath("${params.assembly[assembly_to_use].ref_fai}").map(createMetaWithIdName).first()
    
     // Reference bed files
-    regions_bed = "${params[params.nist_version_to_use].high_conf_bed}"
-    targets_bed = "${params.assembly[params[params.nist_version_to_use].assembly].exome_target_bed}"
+    regions_bed = "${params.assembly[params[params.nist_version_to_use].assembly].exome_target_bed}"
+    false_positives = "${params[params.nist_version_to_use].high_conf_bed}"
 
     // GIAB reference file channels
     ch_giab_truth = Channel.fromPath("${params[params.nist_version_to_use].truth_vcf}")
@@ -129,7 +129,7 @@ workflow {
             && [meta_query.id, meta_truth.id] == [meta_query.id, meta_truth.id].sort()
         )
         lst_used.add("pairwise_" + meta_query.id + "_" + meta_truth.id)
-        return [meta, query, truth, regions_bed, targets_bed]
+        return [meta, query, truth, regions_bed, false_positives]
     }
 
     // Run HAPPY for all VCF compared to GIAB truth
