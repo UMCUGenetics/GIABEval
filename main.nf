@@ -45,7 +45,7 @@ workflow {
             query: meta_query.id,
             truth: meta_truth.id
         ]
-        return [meta, query, truth, regions_bed, false_positives]
+        return [meta, query, truth, regions_bed, []]
     }
 
     // Empty channel for optional inputs, where meta val is required (often input tuples)
@@ -55,10 +55,10 @@ workflow {
     assembly_to_use = params[params.nist_version_to_use].assembly
     ch_fasta = Channel.fromPath("${params.assembly[assembly_to_use].ref_fasta}").map(createMetaWithIdName).first()
     ch_fasta_fai = Channel.fromPath("${params.assembly[assembly_to_use].ref_fai}").map(createMetaWithIdName).first()
-   
+    ch_false_positives_bed = Channel.fromPath("${params[params.nist_version_to_use].high_conf_bed}").map(createMetaWithIdName).first()
+
     // Reference bed files
     regions_bed = "${params.assembly[params[params.nist_version_to_use].assembly].exome_target_bed}"
-    false_positives = "${params[params.nist_version_to_use].high_conf_bed}"
 
     // GIAB reference file channels
     ch_giab_truth = Channel.fromPath("${params[params.nist_version_to_use].truth_vcf}")
@@ -129,11 +129,12 @@ workflow {
             && [meta_query.id, meta_truth.id] == [meta_query.id, meta_truth.id].sort()
         )
         lst_used.add("pairwise_" + meta_query.id + "_" + meta_truth.id)
-        return [meta, query, truth, regions_bed, false_positives]
+        return [meta, query, truth, regions_bed, []]
     }
 
     // Run HAPPY for all VCF compared to GIAB truth
-    HAPPY_HAPPY_single(ch_vcf_giab, ch_fasta, ch_fasta_fai, empty, empty, empty)
+    HAPPY_HAPPY_single(ch_vcf_giab, ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty)
+
 
     // Reheader Happy output VCF with reference genome .fai
     BCFTOOLS_REHEADER_SINGLE(
@@ -142,7 +143,7 @@ workflow {
     )
 
     // Retrieve true-positives from pairwise comparisons.
-    HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, empty, empty, empty)
+    HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty)
     ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf
         .map(addTmpId)
         .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
@@ -187,7 +188,7 @@ workflow {
     // Run HAPPY on pairwise true-positives against GIAB truth
     HAPPY_HAPPY_tp_giab(
         BCFTOOLS_ANNOTATE.out.vcf.combine(BCFTOOLS_NORM_GIAB.out.vcf).map(createHappyInput),
-        ch_fasta, ch_fasta_fai, empty, empty, empty
+        ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty
     )   
 
     // Reheader Happy pairwise VCF with reference genome .fai
