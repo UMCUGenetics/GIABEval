@@ -106,35 +106,8 @@ workflow {
     .combine(BCFTOOLS_NORM_GIAB.out.vcf)
     .map(createHappyInput)
 
-    // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a
-    def lst_used = []
-
-    // Create a channel with all vcf files and combine with input vcf files
-    ch_vcf_pairwise = BCFTOOLS_NORM_INPUT.out.vcf
-    .combine(BCFTOOLS_NORM_INPUT.out.vcf)
-    .branch {meta_truth, truth, meta_query, query ->
-        meta = [
-            id: "pairwise_" + meta_query.id + "_" + meta_truth.id,
-            query: meta_query.id,
-            truth: meta_truth.id
-        ]
-        /*
-        Select valid combination:
-         - without self-self
-         - only for sorted pair to ensure correct orientation based on sampleID
-           irrespective of input order in channel(s)
-        */
-        valid: (
-            meta_query.id != meta_truth.id
-            && [meta_query.id, meta_truth.id] == [meta_query.id, meta_truth.id].sort()
-        )
-        lst_used.add("pairwise_" + meta_query.id + "_" + meta_truth.id)
-        return [meta, query, truth, regions_bed, []]
-    }
-
     // Run HAPPY for all VCF compared to GIAB truth
     HAPPY_HAPPY_single(ch_vcf_giab, ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty)
-
 
     // Reheader Happy output VCF with reference genome .fai
     BCFTOOLS_REHEADER_SINGLE(
@@ -142,66 +115,104 @@ workflow {
         ch_fasta_fai
     )
 
-    // Retrieve true-positives from pairwise comparisons.
-    HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty)
-    ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf
-        .map(addTmpId)
-        .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
-        .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+    if (params.run_pairwise) {
 
-    // Reheader VCF with reference genome .fai
-    BCFTOOLS_REHEADER_PAIRWISE_TP(
-        HAPPY_HAPPY_pairwise.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
-        ch_fasta_fai
-    )
+        // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a
+        def lst_used = []
 
-    // Remove nocall  on VCF + index
-    GATK4_SELECTVARIANTS_NOCALL(
-        BCFTOOLS_REHEADER_PAIRWISE_TP.out.vcf
+        // Create a channel with all vcf files and combine with input vcf files
+        ch_vcf_pairwise = BCFTOOLS_NORM_INPUT.out.vcf
+        .combine(BCFTOOLS_NORM_INPUT.out.vcf)
+        .branch {meta_truth, truth, meta_query, query ->
+            meta = [
+                id: "pairwise_" + meta_query.id + "_" + meta_truth.id,
+                query: meta_query.id,
+                truth: meta_truth.id
+            ]
+            /*
+            Select valid combination:
+             - without self-self
+             - only for sorted pair to ensure correct orientation based on sampleID
+               irrespective of input order in channel(s)
+            */
+            valid: (
+                meta_query.id != meta_truth.id
+                && [meta_query.id, meta_truth.id] == [meta_query.id, meta_truth.id].sort()
+            )
+            lst_used.add("pairwise_" + meta_query.id + "_" + meta_truth.id)
+            return [meta, query, truth, regions_bed, []]
+        }
+
+        // Retrieve true-positives from pairwise comparisons.
+        HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty)
+        ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf
             .map(addTmpId)
-            .join(BCFTOOLS_REHEADER_PAIRWISE_TP.out.index.map(addTmpId), by: 0)
+            .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
             .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
-    )
 
-    // SelectVariants on VCF + index to select true-positives
-    GATK4_SELECTVARIANTS_TP(
-        GATK4_SELECTVARIANTS_NOCALL.out.vcf
-            .map(addTmpId)
-            .join(GATK4_SELECTVARIANTS_NOCALL.out.tbi.map(addTmpId), by: 0)
-            .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
-    )
+        // Reheader VCF with reference genome .fai
+        BCFTOOLS_REHEADER_PAIRWISE_TP(
+            HAPPY_HAPPY_pairwise.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
+            ch_fasta_fai
+        )
 
-    /*
-    BCFTOOLS FILTER to remove filter status from pairwise VCF as overlapping
-    variants between two VCFs could be regarded as high confident.
-      - removing filter status results in similar results for A-B and B-A comparisons.
-    */
+        // Remove nocall  on VCF + index
+        GATK4_SELECTVARIANTS_NOCALL(
+            BCFTOOLS_REHEADER_PAIRWISE_TP.out.vcf
+                .map(addTmpId)
+                .join(BCFTOOLS_REHEADER_PAIRWISE_TP.out.index.map(addTmpId), by: 0)
+                .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+        )
 
-    BCFTOOLS_ANNOTATE(
-        GATK4_SELECTVARIANTS_TP.out.vcf
-            .map(addTmpId)
-            .join(GATK4_SELECTVARIANTS_TP.out.tbi.map(addTmpId), by: 0)
-            .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, [], []]}
-        , Channel.empty().toList()
-    )
+        // SelectVariants on VCF + index to select true-positives
+        GATK4_SELECTVARIANTS_TP(
+           GATK4_SELECTVARIANTS_NOCALL.out.vcf
+                .map(addTmpId)
+                .join(GATK4_SELECTVARIANTS_NOCALL.out.tbi.map(addTmpId), by: 0)
+                .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+        )
 
-    // Run HAPPY on pairwise true-positives against GIAB truth
-    HAPPY_HAPPY_tp_giab(
-        BCFTOOLS_ANNOTATE.out.vcf.combine(BCFTOOLS_NORM_GIAB.out.vcf).map(createHappyInput),
-        ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty
-    )   
+        /*
+        TODO: BCFTOOLS FILTER to remove filter status from pairwise VCF
+        overlapping variants between two VCFs could be regarded as high confident
+        thus might not need a filter status (/PASS for all)
+          - removing filter status results in similar results for A-B and B-A comparisons
+            which is currently not the case.
+        */
 
-    // Reheader Happy pairwise VCF with reference genome .fai
-    BCFTOOLS_REHEADER_PAIRWISE(
-        HAPPY_HAPPY_tp_giab.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
-        ch_fasta_fai
-    )
+        BCFTOOLS_ANNOTATE(
+            GATK4_SELECTVARIANTS_TP.out.vcf
+                .map(addTmpId)
+                .join(GATK4_SELECTVARIANTS_TP.out.tbi.map(addTmpId), by: 0)
+                .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, [], []]}
+            , Channel.empty().toList()
+        )
+
+        // Run HAPPY on pairwise true-positives against GIAB truth
+        HAPPY_HAPPY_tp_giab(
+            BCFTOOLS_ANNOTATE.out.vcf.combine(BCFTOOLS_NORM_GIAB.out.vcf).map(createHappyInput),
+           ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty
+        )
+
+        // Reheader Happy pairwise VCF with reference genome .fai
+        BCFTOOLS_REHEADER_PAIRWISE(
+            HAPPY_HAPPY_tp_giab.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
+            ch_fasta_fai
+        )
+
+    }
+
+    // Make empty channel is run_pairwise is false
+    pairwise_summary = params.run_pairwise ?
+        HAPPY_HAPPY_tp_giab.out.summary_csv :
+        Channel.empty()
 
     EditSummaryFileHappy(
         Channel.empty().mix(
             HAPPY_HAPPY_single.out.summary_csv,
-            HAPPY_HAPPY_tp_giab.out.summary_csv,
-        )
+            pairwise_summary
+        ).ifEmpty([])
+
     )
 
     CheckQC(
