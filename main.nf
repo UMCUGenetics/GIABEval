@@ -59,9 +59,6 @@ workflow {
     ch_stratification = Channel.fromPath("${params[params.nist_version_to_use].stratification}").map(createMetaWithIdName).first()
     ch_stratification_bed = Channel.fromPath("${params[params.nist_version_to_use].stratification_bed}", checkIfExists: true, type: 'dir').map{ bed -> tuple([id: "stratification"], bed) }.collect()
 
-    ch_stratification | view
-    ch_stratification_bed | view
-    
     // Reference bed files
     regions_bed = "${params.assembly[params[params.nist_version_to_use].assembly].exome_target_bed}"
 
@@ -96,14 +93,13 @@ workflow {
     BCFTOOLS_VIEW_PRIMARY(BCFTOOLS_VIEW_INPUT.out.vcf
         .join(BCFTOOLS_VIEW_INPUT.out.tbi)
         .map { meta, vcf, tbi -> [ meta, vcf, tbi ]}, Channel.empty().toList(), Channel.empty().toList(), Channel.empty().toList()
-    )
-    
+    ) 
+
     /*
     BCFTOOLS_NORM (normalisation) is required to
         - place an indel at the left-most position (left-align)
         - normalizes split multiallelic sites into biallelics
-    */
-    
+    */    
     BCFTOOLS_NORM_INPUT(BCFTOOLS_VIEW_PRIMARY.out.vcf.join(BCFTOOLS_VIEW_PRIMARY.out.tbi), ch_fasta)
     BCFTOOLS_NORM_GIAB(ch_giab_truth.join(BCFTOOLS_VIEW_GIAB.out.tbi), ch_fasta)
 
@@ -120,7 +116,7 @@ workflow {
         HAPPY_HAPPY_single.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
         ch_fasta_fai
     )
-    
+
     if (params.run_pairwise) {
 
         // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a
@@ -245,7 +241,6 @@ workflow {
         ).collect(), 
         multiqc_yaml, [], []
     )
-
 }
 
 /*
