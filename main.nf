@@ -14,13 +14,13 @@ include { EditSummaryFileHappy } from './CustomModules/Utils/EditSummaryFileHapp
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_NOCALL } from './modules/nf-core/gatk4/selectvariants/main'
 include { GATK4_SELECTVARIANTS as GATK4_SELECTVARIANTS_TP } from './modules/nf-core/gatk4/selectvariants/main'
 include { HAPPY_HAPPY as HAPPY_HAPPY_single } from './modules/nf-core/happy/happy/main'
-include { HAPPY_HAPPY as HAPPY_HAPPY_pairwise} from './modules/nf-core/happy/happy/main' 
-include { HAPPY_HAPPY as HAPPY_HAPPY_tp_giab} from './modules/nf-core/happy/happy/main' 
-include { MULTIQC } from './modules/nf-core/multiqc/main' 
+include { HAPPY_HAPPY as HAPPY_HAPPY_pairwise} from './modules/nf-core/happy/happy/main'
+include { HAPPY_HAPPY as HAPPY_HAPPY_tp_giab} from './modules/nf-core/happy/happy/main'
+include { MULTIQC } from './modules/nf-core/multiqc/main'
 include { VersionLog } from './CustomModules/Utils/VersionLog.nf'
 include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/workflow.nf'
 
-def analysis_id = params.outdir.split('/')[-1]
+
 
 // Add banner via log.info
 log.info """\
@@ -32,15 +32,15 @@ log.info """\
     assembly: ${params.assembly[params[params.nist_version_to_use].assembly]}
     GIAB settings: ${params[params.nist_version_to_use]}
     ===================================
-    
+
     """
 .stripIndent(true)
 
 workflow {
-    def createMetaWithIdName = {file -> [[id: file.name], file]}
+    def createMetaWithIdName = {file -> [[id: file.getSimpleName()], file]}
     def addTmpId = {meta, file -> [meta.id, meta, file]}
     def createHappyInput = {meta_query, query, meta_truth, truth ->
-        meta = [
+        def meta = [
             id: meta_query.id + "_" + meta_truth.id,
             query: meta_query.id,
             truth: meta_truth.id
@@ -48,23 +48,32 @@ workflow {
         return [meta, query, truth, regions_bed, []]
     }
 
+    def analysis_id = params.outdir.split('/')[-1]
+
     // Empty channel for optional inputs, where meta val is required (often input tuples)
-    empty = Channel.of([[id: "null"], []]).first()
+    // empty = Channel.of([[id: "null"], []]).first()
 
     // Reference file channels
-    assembly_to_use = params[params.nist_version_to_use].assembly
-    ch_fasta = Channel.fromPath("${params.assembly[assembly_to_use].ref_fasta}").map(createMetaWithIdName).first()
-    ch_fasta_fai = Channel.fromPath("${params.assembly[assembly_to_use].ref_fai}").map(createMetaWithIdName).first()
-    ch_false_positives_bed = Channel.fromPath("${params[params.nist_version_to_use].false_positives_bed}").map(createMetaWithIdName).first()
+    // assembly_to_use = params[params.nist_version_to_use].assembly
+    ch_fasta = channel.fromPath(params.ref_fasta)
+        .map(createMetaWithIdName)
+        .first()
+    ch_fai = channel.fromPath("${params.ref_fasta}.fai")
+        .map(createMetaWithIdName)
+        .first()
+
+    ch_false_positives_bed = channel.fromPath("${params.false_positives_bed}")
+        .map(createMetaWithIdName)
+        .first()
 
     // Reference bed files
-    regions_bed = "${params.assembly[params[params.nist_version_to_use].assembly].exome_target_bed}"
+    regions_bed = "${params.exome_target_bed}"
 
     // GIAB reference file channels
-    ch_giab_truth = Channel.fromPath("${params[params.nist_version_to_use].truth_vcf}")
+    ch_giab_truth = Channel.fromPath("${params.truth_vcf}")
     .map{file ->
-        tokens = file.name.tokenize("_")
-        [[id: tokens[0] + "_truth"], file]
+        def samplename = file.name.tokenize("_")
+        [[id: samplename + "_truth"], file]
     }
     .first()
 
@@ -72,10 +81,10 @@ workflow {
     ch_vcf_files = Channel.fromPath(["${params.vcf_path}/*.vcf.gz", "${params.vcf_path}/*.vcf"])
     .map { vcf ->
         // Split filename using params.delim and select indices to create unique identifier
-        tokens = vcf.name.tokenize(params.delim)
-        id_items = params.id_index.collect{idx -> tokens[idx]}
-        identifier = (id_items.join("_")? id_items.join("_") : id_items)
-        meta = [
+        def tokens = vcf.name.tokenize(params.delim)
+        def id_items = params.id_index.collect{idx -> tokens[idx]}
+        def identifier = (id_items.join("_") ?: id_items)
+        def meta = [
             id: identifier,
             vcf: vcf.simpleName,
             single_end:false
@@ -84,13 +93,29 @@ workflow {
     }
 
     //Compress all VCF and index
-    BCFTOOLS_VIEW_INPUT(ch_vcf_files.map { meta, vcf -> [ meta, vcf, [] ]}, Channel.empty().toList(), Channel.empty().toList(), Channel.empty().toList())
-    BCFTOOLS_VIEW_GIAB(ch_giab_truth.map { meta, vcf -> [ meta, vcf, [] ]}, Channel.empty().toList(), Channel.empty().toList(), Channel.empty().toList())
+    BCFTOOLS_VIEW_INPUT(
+        ch_vcf_files
+            .map { meta, vcf -> [ meta, vcf, [] ] },
+        [],
+        [],
+        []
+    )
+    BCFTOOLS_VIEW_GIAB(
+        ch_giab_truth
+            .map { meta, vcf -> [ meta, vcf, [] ] },
+        [],
+        [],
+        []
+    )
 
     // Slice Input VCFs for primary contigs
-    BCFTOOLS_VIEW_PRIMARY(BCFTOOLS_VIEW_INPUT.out.vcf
-        .join(BCFTOOLS_VIEW_INPUT.out.tbi)
-        .map { meta, vcf, tbi -> [ meta, vcf, tbi ]}, Channel.empty().toList(), Channel.empty().toList(), Channel.empty().toList()
+    BCFTOOLS_VIEW_PRIMARY(
+        BCFTOOLS_VIEW_INPUT.out.vcf
+            .join(BCFTOOLS_VIEW_INPUT.out.tbi)
+            .map { meta, vcf, tbi -> [ meta, vcf, tbi ]},
+        [],
+        [],
+        []
     )
 
     /*
@@ -98,78 +123,97 @@ workflow {
         - place an indel at the left-most position (left-align)
         - normalizes split multiallelic sites into biallelics
     */
-    BCFTOOLS_NORM_INPUT(BCFTOOLS_VIEW_PRIMARY.out.vcf.join(BCFTOOLS_VIEW_PRIMARY.out.tbi), ch_fasta)
-    BCFTOOLS_NORM_GIAB(ch_giab_truth.join(BCFTOOLS_VIEW_GIAB.out.tbi), ch_fasta)
+    BCFTOOLS_NORM_INPUT(
+        BCFTOOLS_VIEW_PRIMARY.out.vcf
+            .join(BCFTOOLS_VIEW_PRIMARY.out.tbi),
+        ch_fasta
+    )
+    BCFTOOLS_NORM_GIAB(
+        ch_giab_truth
+            .join(BCFTOOLS_VIEW_GIAB.out.tbi),
+        ch_fasta
+    )
 
     // Create a channel with vcfs against giab.
     ch_vcf_giab = BCFTOOLS_NORM_INPUT.out.vcf
-    .combine(BCFTOOLS_NORM_GIAB.out.vcf)
-    .map(createHappyInput)
+        .combine(BCFTOOLS_NORM_GIAB.out.vcf)
+        .map(createHappyInput)
 
     // Run HAPPY for all VCF compared to GIAB truth
-    HAPPY_HAPPY_single(ch_vcf_giab, ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty)
+    HAPPY_HAPPY_single(
+        ch_vcf_giab,
+        ch_fasta,
+        ch_fai,
+        ch_false_positives_bed,
+        [[:],[]],
+        [[:],[]]
+    )
 
     // Reheader Happy output VCF with reference genome .fai
     BCFTOOLS_REHEADER_SINGLE(
         HAPPY_HAPPY_single.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
-        ch_fasta_fai
+        ch_fasta
+            .join(ch_fai)
     )
 
     if (params.run_pairwise) {
 
-        // Get all combinations of unordered vcf pairs, without self-self and where a+b == b+a
-        def lst_used = []
-
-        // Create a channel with all vcf files and combine with input vcf files
         ch_vcf_pairwise = BCFTOOLS_NORM_INPUT.out.vcf
-        .combine(BCFTOOLS_NORM_INPUT.out.vcf)
-        .branch {meta_truth, truth, meta_query, query ->
-            meta = [
-                id: "pairwise_" + meta_query.id + "_" + meta_truth.id,
-                query: meta_query.id,
-                truth: meta_truth.id
-            ]
-            /*
-            Select valid combination:
-             - without self-self
-             - only for sorted pair to ensure correct orientation based on sampleID
-               irrespective of input order in channel(s)
-            */
-            valid: (
-                meta_query.id != meta_truth.id
-                && [meta_query.id, meta_truth.id] == [meta_query.id, meta_truth.id].sort()
-            )
-            lst_used.add("pairwise_" + meta_query.id + "_" + meta_truth.id)
-            return [meta, query, truth, regions_bed, []]
-        }
+            .combine(BCFTOOLS_NORM_INPUT.out.vcf)
+            .filter { meta1, vcf1, meta2, vcf2 ->
+                meta1.id < meta2.id
+            }
+            .map { meta1, vcf1, meta2, vcf2 ->
+                def meta = [
+                    id:    "pairwise_${meta1.id}_${meta2.id}",
+                    query: meta1.id,
+                    truth: meta2.id
+                ]
+                [meta, vcf1, vcf2, regions_bed, []]
+            }
+
 
         // Retrieve true-positives from pairwise comparisons.
-        HAPPY_HAPPY_pairwise(ch_vcf_pairwise, ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty)
-        ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf
-            .map(addTmpId)
-            .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
-            .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+        HAPPY_HAPPY_pairwise(
+            ch_vcf_pairwise,
+            ch_fasta,
+            ch_fai,
+            ch_false_positives_bed,
+            [[:],[]],
+            [[:],[]]
+        )
+
+        // ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf
+            // .map(addTmpId)
+            // .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
+            // .map { _id, meta_vcf, vcf, _meta_index, index -> [meta_vcf, vcf, index, []] }
 
         // Reheader VCF with reference genome .fai
         BCFTOOLS_REHEADER_PAIRWISE_TP(
-            HAPPY_HAPPY_pairwise.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
-            ch_fasta_fai
+            HAPPY_HAPPY_pairwise.out.vcf
+                .map{ meta, vcf -> [meta, vcf, [], []] },
+            ch_fasta
+                .join(ch_fai)
         )
 
         // Remove nocall  on VCF + index
         GATK4_SELECTVARIANTS_NOCALL(
             BCFTOOLS_REHEADER_PAIRWISE_TP.out.vcf
                 .map(addTmpId)
-                .join(BCFTOOLS_REHEADER_PAIRWISE_TP.out.index.map(addTmpId), by: 0)
-                .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+                .join(BCFTOOLS_REHEADER_PAIRWISE_TP.out.index
+                      .map(addTmpId),
+                      by: 0 )
+                .map{ _id, meta_vcf, vcf, _meta_index, index -> [meta_vcf, vcf, index, []] }
         )
 
         // SelectVariants on VCF + index to select true-positives
         GATK4_SELECTVARIANTS_TP(
            GATK4_SELECTVARIANTS_NOCALL.out.vcf
                 .map(addTmpId)
-                .join(GATK4_SELECTVARIANTS_NOCALL.out.tbi.map(addTmpId), by: 0)
-                .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, []]}
+                .join(GATK4_SELECTVARIANTS_NOCALL.out.tbi
+                        .map(addTmpId),
+                      by: 0)
+                .map{ _id, meta_vcf, vcf, _meta_index, index -> [meta_vcf, vcf, index, []] }
         )
 
         /*
@@ -183,29 +227,36 @@ workflow {
         BCFTOOLS_ANNOTATE(
             GATK4_SELECTVARIANTS_TP.out.vcf
                 .map(addTmpId)
-                .join(GATK4_SELECTVARIANTS_TP.out.tbi.map(addTmpId), by: 0)
-                .map{id, meta_vcf, vcf, meta_index, index -> [meta_vcf, vcf, index, [], []]}
-            , Channel.empty().toList()
+                .join(GATK4_SELECTVARIANTS_TP.out.tbi
+                      .map(addTmpId),
+                      by: 0)
+                .map{ _id, meta_vcf, vcf, _meta_index, index -> [meta_vcf, vcf, index, [], []] },
+            []
         )
 
         // Run HAPPY on pairwise true-positives against GIAB truth
         HAPPY_HAPPY_tp_giab(
-            BCFTOOLS_ANNOTATE.out.vcf.combine(BCFTOOLS_NORM_GIAB.out.vcf).map(createHappyInput),
-           ch_fasta, ch_fasta_fai, ch_false_positives_bed, empty, empty
+            BCFTOOLS_ANNOTATE.out.vcf
+                .combine(BCFTOOLS_NORM_GIAB.out.vcf)
+                .map(createHappyInput),
+            ch_fasta,
+            ch_fai,
+            ch_false_positives_bed,
+            [[:],[]],
+            [[:],[]]
         )
 
         // Reheader Happy pairwise VCF with reference genome .fai
         BCFTOOLS_REHEADER_PAIRWISE(
             HAPPY_HAPPY_tp_giab.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
-            ch_fasta_fai
+            ch_fasta
+                .join(ch_fai)
         )
 
     }
 
-    // Make empty channel is run_pairwise is false
-    pairwise_summary = params.run_pairwise ?
-        HAPPY_HAPPY_tp_giab.out.summary_csv :
-        Channel.empty()
+    // Make empty channel if run_pairwise is false
+    pairwise_summary = params.run_pairwise ? HAPPY_HAPPY_tp_giab.out.summary_csv : []
 
     EditSummaryFileHappy(
         Channel.empty().mix(
@@ -226,7 +277,7 @@ workflow {
     // Create log files: Repository versions and Workflow params
     VersionLog(Channel.of("${workflow.projectDir}/"))
     Workflow_ExportParams()
-        
+
     multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
     MULTIQC(
         Channel.empty().mix(
@@ -236,7 +287,7 @@ workflow {
             EditSummaryFileHappy.out.snp_pass_csv,
             CheckQC.out.qc_output,
             Workflow_ExportParams.out
-        ).collect(), 
+        ).collect(),
         multiqc_yaml, [], []
     )
 }
