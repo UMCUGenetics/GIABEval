@@ -73,7 +73,7 @@ workflow {
     ch_giab_truth = Channel.fromPath(truthset_config.truth_vcf)
     .map{file ->
         def samplename = file.name.tokenize("_")
-        [[id: samplename + "_truth"], file]
+            [[id: "${samplename[0]}_truth"], file]
     }
     .first()
 
