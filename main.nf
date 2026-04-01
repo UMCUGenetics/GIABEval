@@ -23,18 +23,18 @@ include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/
 
 
 // Add banner via log.info
-log.info """\
-    G I A B E V A L   P I P E L I N E
-    ===================================
-    input: ${params.vcf_path}
-    output: ${params.outdir}
-    nist version: ${params.nist_version_to_use}
-    assembly: ${params.assembly[params[params.nist_version_to_use].assembly]}
-    GIAB settings: ${params[params.nist_version_to_use]}
-    ===================================
+// log.info """\
+    // G I A B E V A L   P I P E L I N E
+    // ===================================
+    // input: ${params.vcf_path}
+    // output: ${params.outdir}
+    // nist version: ${params.nist_version_to_use}
+    // assembly: ${params.assembly[params[params.nist_version_to_use].assembly]}
+    // GIAB settings: ${params[params.nist_version_to_use]}
+    // ===================================
 
-    """
-.stripIndent(true)
+    // """
+// .stripIndent(true)
 
 workflow {
     def createMetaWithIdName = {file -> [[id: file.getSimpleName()], file]}
@@ -50,27 +50,27 @@ workflow {
 
     def analysis_id = params.outdir.split('/')[-1]
 
-    // Empty channel for optional inputs, where meta val is required (often input tuples)
-    // empty = Channel.of([[id: "null"], []]).first()
+    genome_config = params.assembly[params.genome_build]
+    truthset_config = params.truthsets[params.genome_build][params.nist_version]
 
     // Reference file channels
-    // assembly_to_use = params[params.nist_version_to_use].assembly
-    ch_fasta = channel.fromPath(params.ref_fasta)
+
+    ch_fasta = channel.fromPath(genome_config.ref_fasta)
         .map(createMetaWithIdName)
         .first()
-    ch_fai = channel.fromPath("${params.ref_fasta}.fai")
+    ch_fai = channel.fromPath(genome_config.ref_fai)
         .map(createMetaWithIdName)
         .first()
 
-    ch_false_positives_bed = channel.fromPath("${params.false_positives_bed}")
+    ch_false_positives_bed = channel.fromPath(truthset_config.false_positives_bed)
         .map(createMetaWithIdName)
         .first()
 
     // Reference bed files
-    regions_bed = "${params.exome_target_bed}"
+    regions_bed = genome_config.exome_target_bed
 
     // GIAB reference file channels
-    ch_giab_truth = Channel.fromPath("${params.truth_vcf}")
+    ch_giab_truth = Channel.fromPath(truthset_config.truth_vcf)
     .map{file ->
         def samplename = file.name.tokenize("_")
         [[id: samplename + "_truth"], file]
