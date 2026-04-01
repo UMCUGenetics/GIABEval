@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-// Include processes, alphabetic order of process alias
+
 include { BCFTOOLS_ANNOTATE } from './modules/nf-core/bcftools/annotate/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_INPUT } from './modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_NORM as BCFTOOLS_NORM_GIAB } from './modules/nf-core/bcftools/norm/main'
@@ -23,18 +23,17 @@ include { ExportParams as Workflow_ExportParams } from './NextflowModules/Utils/
 
 
 // Add banner via log.info
-// log.info """\
-    // G I A B E V A L   P I P E L I N E
-    // ===================================
-    // input: ${params.vcf_path}
-    // output: ${params.outdir}
-    // nist version: ${params.nist_version_to_use}
-    // assembly: ${params.assembly[params[params.nist_version_to_use].assembly]}
-    // GIAB settings: ${params[params.nist_version_to_use]}
-    // ===================================
+log.info """\
+    G I A B E V A L   P I P E L I N E
+    ===================================
+    input: ${params.vcf_path}
+    output: ${params.outdir}
+    nist version: ${params.nist_version}
+    assembly: ${params.genome_build}
+    ===================================
 
-    // """
-// .stripIndent(true)
+    """
+.stripIndent(true)
 
 workflow {
     def createMetaWithIdName = {file -> [[id: file.getSimpleName()], file]}
@@ -181,11 +180,6 @@ workflow {
             [[:],[]],
             [[:],[]]
         )
-
-        // ch_pairwise_vcf_index = HAPPY_HAPPY_pairwise.out.vcf
-            // .map(addTmpId)
-            // .join(HAPPY_HAPPY_pairwise.out.tbi.map(addTmpId), by: 0)
-            // .map { _id, meta_vcf, vcf, _meta_index, index -> [meta_vcf, vcf, index, []] }
 
         // Reheader VCF with reference genome .fai
         BCFTOOLS_REHEADER_PAIRWISE_TP(
