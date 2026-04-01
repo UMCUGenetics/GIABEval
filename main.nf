@@ -152,8 +152,7 @@ workflow {
     // Reheader Happy output VCF with reference genome .fai
     BCFTOOLS_REHEADER_SINGLE(
         HAPPY_HAPPY_single.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
-        ch_fasta
-            .join(ch_fai)
+        ch_fai
     )
 
     if (params.run_pairwise) {
@@ -192,8 +191,7 @@ workflow {
         BCFTOOLS_REHEADER_PAIRWISE_TP(
             HAPPY_HAPPY_pairwise.out.vcf
                 .map{ meta, vcf -> [meta, vcf, [], []] },
-            ch_fasta
-                .join(ch_fai)
+            ch_fai
         )
 
         // Remove nocall  on VCF + index
@@ -249,8 +247,7 @@ workflow {
         // Reheader Happy pairwise VCF with reference genome .fai
         BCFTOOLS_REHEADER_PAIRWISE(
             HAPPY_HAPPY_tp_giab.out.vcf.map{meta, vcf -> [meta, vcf, [], []]},
-            ch_fasta
-                .join(ch_fai)
+            ch_fai
         )
 
     }
