@@ -12,16 +12,126 @@ Genome-in-a-bottle evaluation software to determine statistics such as precision
 Note that statistics calculations will be on the primary contigs as defined in nextflow.config.
 This prevents issues due to diffent reference genomes such als ALT, Decoy, or tertairy software reference genomes.
 
-## Get submodules, such as NextflowModules, CustomModules and install OpenJDK and Nextflow
+## Installation
+
+An install script (`install.sh`) is available, tailored to the UMCU infrastructure. For other users, we recommend following these steps:
+
+1. **Install Nextflow** by following the official guide: [https://docs.seqera.io/nextflow/install](https://docs.seqera.io/nextflow/install)
+
+2. **Clone the GIABEval repository** and initialise the submodules:
 ```bash
-sh install.sh
+   git clone git@github.com:UMCUGenetics/GIABEval.git
+   cd GIABEval
+   git submodule update --init --recursive
 ```
+
+## Configuration
+
+By default, reference files for the genome assembly and GIAB truthset that are required for GIABEval to run, are configured to work on the UMCU cluster. To run GIABEval on a different cluster, these inputs have to be reconfigured. The default settings are specified in `conf/genomes_truthsets.config`.
+
+The easiest way to do this is by creating a custom config file in this format.
+
+``` Groovy
+params { // don't change this line
+
+  assembly { // don't change this line
+    "GRCh38" {
+      ref_fasta = ...
+      ref_fai = ...
+      rtg_index = ..
+      primary_contigs = "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY"
+    }
+  }
+
+
+  truthsets {
+
+    "GRCh38" { // name should match with the name in the assembly{} block
+      "hg001_nist_v4_2_1" { // or change to something else
+                input_base          = "./path/to/GIAB/NA12878_HG001/NISTv4.2.1/GRCh38/" // change accordingly
+                truth_vcf           = "${input_base}/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz" // change accordingly
+                truth_vcf_index     = "${input_base}/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi" // change accordingly
+                false_positives_bed = "${input_base}/HG001_GRCh38_1_22_v4.2.1_benchmark.bed"// change accordingly
+        }
+    }
+  }
+}
+```
+
+
+## Configuration
+
+GIABEval requires reference files for the genome assembly and GIAB truthsets. By default, these point to locations on the UMCU cluster, as defined in `conf/genomes_truthsets.config`. To run GIABEval elsewhere, you'll need to override these paths with your own custom config file.
+
+### Creating a custom config
+
+Create a file (e.g. `my_resources.config`) following the structure below. You only need to include the assemblies and truthsets you actually want to use — anything you omit will fall back to the defaults.
+```groovy
+params {
+  assembly {
+    "GRCh38" {                              // assembly name — referenced by truthsets below
+      ref_fasta        = "/path/to/genome.fna"
+      ref_fai          = "/path/to/genome.fna.fai"
+      rtg_index        = "/path/to/genome.SDF/"
+      exome_target_bed = "/path/to/targets.bed"
+      primary_contigs  = "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY"
+    }
+  }
+
+  truthsets {
+    "GRCh38" {                              // must match an assembly name above
+      "hg001_nist_v4_2_1" {                 // truthset ID — pick any name you like
+        input_base          = "/path/to/GIAB/HG001/NISTv4.2.1/GRCh38"
+        truth_vcf           = "${input_base}/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz"
+        truth_vcf_index     = "${input_base}/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi"
+        false_positives_bed = "${input_base}/HG001_GRCh38_1_22_v4.2.1_benchmark.bed"
+      }
+    }
+  }
+}
+```
+Then pass it to Nextflow with `-c my_resources.config` when running the pipeline.
+
+### Nextflow profiles
+
+By default, GIABEval submits jobs via **SLURM**. When running outside the UMCU cluster, you'll need to adjust the institute-specific SLURM settings — most notably:
+
+- `cluster_account`
+- `singularity_cachedir`
+- `singularity_runoptions`
+
+To run GIABEval locally or on a non-SLURM scheduler, you can define your own Nextflow profile. See the Nextflow documentation for details:
+
+- [Config profiles](https://docs.seqera.io/nextflow/config#config-profiles)
+- [Executors](https://docs.seqera.io/nextflow/executor)
+
 
 ## Usage
+### UMCU
 
 ```bash
-nextflow run main.nf -c nextflow.config --vcf_path [input_vcf_dir_path] --outdir [output_dir_path] --email [email]
+nextflow run GIABeval/main.nf \
+  --vcf_path <input_vcf_dir_path/> \
+  --outdir <output_dir_path> \
+  --email <email>
 ```
+
+### Other institute SLURM
+
+``` bash
+nextflow run GIABeval/main.nf \
+  -c my_resources.config \
+  --cluster_account <account_name> \
+  --singularity_cachedir </path/to/singularity/cachedir> \
+  --singularity_runoptions "" \
+  --vcf_path <input_vcf_dir_path/> \
+  --outdir <output_dir_path> \
+  --email <email>
+```
+
+
+
+
 
 ## Citations
 
