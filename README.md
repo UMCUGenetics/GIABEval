@@ -33,6 +33,7 @@ GIABEval requires a few specific reference input files.
 - Genome reference files (GRCh38): https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/
 - The `rtg_index` may be downloaded from [realtimegenomics](https://www.realtimegenomics.com/news/pre-formatted-reference-datasets) or can alternatively produced using RTG Tools with command: `rtg format -o reference.sdf reference.fasta`, using the genome fasta as input
 - The `exome_target_bed` is available for [GRCh37](https://github.com/UMCUGenetics/Dx_tracks/blob/master/Tracks/ENSEMBL_UCSC_merged_collapsed_sorted_v3_20bpflank_collapsed.bed) and [GRCh38](https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/genome-stratifications/v3.5/GRCh38@all/Functional/GRCh38_refseq_cds.bed.gz).
+- The GIAB stratification files are available on [https://www.nist.gov/programs-projects/genome-bottle](https://www.nist.gov/programs-projects/genome-bottle)
 
 The truthsets can be obtained from the ncbi, for example HG002: https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/
 
