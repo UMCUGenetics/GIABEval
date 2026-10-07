@@ -100,7 +100,7 @@ nextflow run GIABeval/main.nf \
 ``` bash
 nextflow run GIABeval/main.nf \
   -c my_resources.config \
-  --genome_build GRCh38> \ # modify accordingly
+  --genome_build GRCh38 \ # modify accordingly
   --nist_version hg002_nist_v4_2_1 \ # modify accordingly
   --cluster_account <account_name> \
   --singularity_cachedir </path/to/singularity/cachedir> \
