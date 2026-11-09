@@ -290,7 +290,7 @@ workflow {
 
     workflow.onComplete {
         // HTML Template
-        def template = new File("$projectDir/assets/workflow_complete.html")
+        def template = new File("${workflow.projectDir}/assets/workflow_complete.html")
         def binding = [
             runName: analysis_id,
             workflow: workflow
