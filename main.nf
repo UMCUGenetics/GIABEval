@@ -35,6 +35,9 @@ log.info """\
     """
 .stripIndent(true)
 
+def projectDir = workflow.projectDir
+def analysis_id = params.outdir.split('/')[-1]
+
 workflow {
     def createMetaWithIdName = {file -> [[id: file.getSimpleName()], file]}
     def addTmpId = {meta, file -> [meta.id, meta, file]}
@@ -46,8 +49,6 @@ workflow {
         ]
         return [meta, query, truth, regions_bed, []]
     }
-
-    def analysis_id = params.outdir.split('/')[-1]
 
     genome_config = params.assembly[params.genome_build]
     truthset_config = params.truthsets[params.genome_build][params.nist_version]
@@ -266,7 +267,7 @@ workflow {
     )
 
     // Create log files: Repository versions and Workflow params
-    VersionLog(Channel.of("${workflow.projectDir}/"))
+    VersionLog(Channel.of("${projectDir}/"))
     Workflow_ExportParams()
 
     multiqc_yaml = Channel.fromPath("${params.multiqc_yaml}")
@@ -281,30 +282,30 @@ workflow {
         ).collect(),
         multiqc_yaml, [], []
     )
+}
 
-    /*
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        COMPLETION EMAIL
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    */
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    COMPLETION EMAIL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 
-    workflow.onComplete {
-        // HTML Template
-        def template = new File("${workflow.projectDir}/assets/workflow_complete.html")
-        def binding = [
-            runName: analysis_id,
-            workflow: workflow
-        ]
-        def engine = new groovy.text.GStringTemplateEngine()
-        def email_html = engine.createTemplate(template).make(binding).toString()
+workflow.onComplete {
+    // HTML Template
+    def template = new File("${projectDir}/assets/workflow_complete.html")
+    def binding = [
+        runName: analysis_id,
+        workflow: workflow
+    ]
+    def engine = new groovy.text.GStringTemplateEngine()
+    def email_html = engine.createTemplate(template).make(binding).toString()
 
-        // Send email
-        if (workflow.success) {
-            def subject = "GIABEval Workflow Successful: ${analysis_id}"
-            sendMail(to: params.email.trim(), subject: subject, body: email_html, attach: "${params.outdir}/QC/multiqc_report.html")
-        } else {
-            def subject = "GIABEval Workflow Failed: ${analysis_id}"
-            sendMail(to: params.email.trim(), subject: subject, body: email_html)
-        }
+    // Send email
+    if (workflow.success) {
+        def subject = "GIABEval Workflow Successful: ${analysis_id}"
+        sendMail(to: params.email.trim(), subject: subject, body: email_html, attach: "${params.outdir}/QC/multiqc_report.html")
+    } else {
+        def subject = "GIABEval Workflow Failed: ${analysis_id}"
+        sendMail(to: params.email.trim(), subject: subject, body: email_html)
     }
 }
