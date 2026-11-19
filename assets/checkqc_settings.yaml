@@ -2,7 +2,7 @@ metrics:
   - filename: "(?=.*truth)(?!.*truth_pairwise)(?=.*SNP).*$"
     delim: ","
     qc_col: "METRIC.Recall"
-    threshold: 0.98
+    threshold: 0.99
     operator: "<"
     report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
     sample_cols: ["samples"]
@@ -10,7 +10,7 @@ metrics:
   - filename: "(?=.*truth)(?!.*truth_pairwise)(?=.*INDEL).*$"
     delim: ","
     qc_col: "METRIC.Recall"
-    threshold: 0.90
+    threshold: 0.98
     operator: "<"
     report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
     sample_cols: ["samples"]
@@ -18,7 +18,7 @@ metrics:
   - filename: "(?=.*truth)(?!.*truth_pairwise)(?=.*SNP).*$"
     delim: ","
     qc_col: "METRIC.Precision"
-    threshold: 0.98
+    threshold: 0.99
     operator: "<"
     report_cols: ["sample_truth", "sample_query", "METRIC.Precision"]
     sample_cols: ["samples"]
@@ -26,7 +26,7 @@ metrics:
   - filename: "(?=.*truth)(?!.*truth_pairwise)(?=.*INDEL).*$"
     delim: ","
     qc_col: "METRIC.Precision"
-    threshold: 0.85
+    threshold: 0.98
     operator: "<"
     report_cols: ["sample_truth", "sample_query", "METRIC.Precision"]
     sample_cols: ["samples"]
@@ -34,7 +34,7 @@ metrics:
   - filename: "(?=.*truth_pairwise)(?=.*SNP).*$"
     delim: ","
     qc_col: "METRIC.Recall"
-    threshold: 0.98
+    threshold: 0.99
     operator: "<"
     report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
     sample_cols: ["samples"]
@@ -42,7 +42,7 @@ metrics:
   - filename: "(?=.*truth_pairwise)(?=.*INDEL).*$"
     delim: ","
     qc_col: "METRIC.Recall"
-    threshold: 0.90
+    threshold: 0.98
     operator: "<"
     report_cols: ["sample_truth", "sample_query", "METRIC.Recall"]
     sample_cols: ["samples"]
